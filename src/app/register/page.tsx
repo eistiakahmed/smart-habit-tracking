@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { register } from '@/lib/auth-actions';
-import { UserPlus, Upload, X } from 'lucide-react';
+import { UserPlus, Upload, X, ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { isAuthenticated, register } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +18,12 @@ export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState<string>('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,7 +68,7 @@ export default function RegisterPage() {
     if (!/\d/.test(pwd)) {
       errors.push('Password must contain at least one number');
     }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+    if (!/\W/.test(pwd)) {
       errors.push('Password must contain at least one special character');
     }
 
@@ -102,6 +109,7 @@ export default function RegisterPage() {
         password,
         firstName,
         lastName,
+        avatar: avatarFile,
       });
 
       router.push('/');
@@ -114,39 +122,43 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8f9fb] px-4 py-8">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#030712] px-4 py-12 relative overflow-hidden">
+      {/* Decorative ambient background */}
+      <div className="absolute top-10 left-10 w-96 h-96 bg-purple-600/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-sky-600/5 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-md w-full page-enter relative z-10">
+        <div className="glass-panel rounded-3xl p-8 border border-slate-800/80 shadow-2xl relative overflow-hidden">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-purple-400/20 shadow-[0_0_24px_rgba(168,85,247,0.2)]">
               <UserPlus className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
-            <p className="text-gray-500 mt-2">Start your habit journey today</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-sans tracking-tight">Create <span className="gradient-text">Account</span></h1>
+            <p className="text-slate-400 text-sm mt-2">Start your habit journey today</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-2">
               <div className="relative">
                 {avatarPreview ? (
                   <div className="relative">
                     <img
                       src={avatarPreview}
                       alt="Avatar preview"
-                      className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
+                      className="w-20 h-20 rounded-full object-cover border-2 border-slate-700 shadow-md"
                     />
                     <button
                       type="button"
                       onClick={removeAvatar}
-                      className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                      className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm cursor-pointer"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ) : (
-                  <label className="w-24 h-24 rounded-full border-4 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 transition-colors bg-gray-50">
-                    <Upload className="w-8 h-8 text-gray-400" />
-                    <span className="text-xs text-gray-400 mt-1">Upload</span>
+                  <label className="w-20 h-20 rounded-full border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-sky-400 hover:bg-slate-900/50 transition-colors bg-slate-950/20">
+                    <Upload className="w-6 h-6 text-slate-400" />
+                    <span className="text-[10px] text-slate-400 mt-1 font-semibold">Avatar</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -160,7 +172,7 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="firstName" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                   First Name
                 </label>
                 <input
@@ -168,13 +180,13 @@ export default function RegisterPage() {
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                   placeholder="John"
                 />
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="lastName" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                   Last Name
                 </label>
                 <input
@@ -182,14 +194,14 @@ export default function RegisterPage() {
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                   placeholder="Doe"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="username" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Username *
               </label>
               <input
@@ -198,14 +210,14 @@ export default function RegisterPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                 placeholder="johndoe"
               />
-              <p className="text-xs text-gray-400 mt-1">3+ characters, letters, numbers, -_</p>
+              <p className="text-[10px] text-slate-500 mt-1 font-medium">3+ characters, letters, numbers, -_</p>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Email *
               </label>
               <input
@@ -214,13 +226,13 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Password *
               </label>
               <input
@@ -229,14 +241,14 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                 placeholder="••••••••"
               />
-              <p className="text-xs text-gray-400 mt-1">8+ chars, upper, lower, number, special</p>
+              <p className="text-[10px] text-slate-500 mt-1 font-medium">8+ chars, upper, lower, number, special</p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Confirm Password *
               </label>
               <input
@@ -245,13 +257,14 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-400 text-sm font-medium flex items-center gap-2">
+                <span>⚠️</span>
                 {error}
               </div>
             )}
@@ -259,25 +272,33 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3.5 rounded-2xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-200 active:scale-[0.98]"
+              className="w-full btn-glow bg-gradient-to-r from-purple-500 to-sky-500 text-white py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_20px_rgba(168,85,247,0.15)] active:scale-[0.98] mt-6 flex items-center justify-center gap-2 cursor-pointer"
             >
-              {loading ? 'Creating account...' : 'Sign Up'}
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Create Account
+                </>
+              )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+          <div className="mt-6 text-center border-t border-slate-800/80 pt-5">
+            <p className="text-sm text-slate-400">
               Already have an account?{' '}
-              <a href="/login" className="text-blue-500 hover:text-blue-600 font-medium">
+              <a href="/login" className="text-sky-400 hover:text-sky-300 font-bold transition-colors">
                 Sign in
               </a>
             </p>
           </div>
         </div>
 
-        <div className="mt-4 text-center">
-          <a href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
+        <div className="mt-6 text-center">
+          <a href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-300 text-sm font-semibold transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to dashboard
           </a>
         </div>
       </div>

@@ -349,6 +349,316 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // ========================================
+  // UNIQUE FEATURES: HABIT DNA SYSTEM
+  // ========================================
+  async analyzeHabitGenetics(habitId: string): Promise<any> {
+    return this.request(`/habit-dna/analyze/${habitId}`);
+  }
+
+  async breedHabits(parentId1: string, parentId2: string): Promise<any> {
+    return this.request('/habit-dna/breed', {
+      method: 'POST',
+      body: JSON.stringify({ parentId1, parentId2 }),
+    });
+  }
+
+  async getBreedingSuggestions(habitId: string): Promise<any> {
+    return this.request(`/habit-dna/breeding-suggestions/${habitId}`);
+  }
+
+  async mutateHabit(habitId: string, forcedType?: string): Promise<any> {
+    return this.request(`/habit-dna/mutate/${habitId}`, {
+      method: 'POST',
+      body: JSON.stringify({ forcedType }),
+    });
+  }
+
+  async getGeneticInsights(habitId: string): Promise<any> {
+    return this.request(`/habit-dna/insights/${habitId}`);
+  }
+
+  async getUserHabitDNA(): Promise<any> {
+    return this.request('/habit-dna/my-dnas');
+  }
+
+  // ========================================
+  // UNIQUE FEATURES: VIRTUAL ECONOMY
+  // ========================================
+  async getUserWallet(): Promise<any> {
+    return this.request('/economy/wallet');
+  }
+
+  async getWalletBalance(): Promise<any> {
+    return this.request('/economy/balance');
+  }
+
+  async earnCurrency(amount: number, currency: string = 'HABIT_COINS', details: any = {}): Promise<any> {
+    return this.request('/economy/earn', {
+      method: 'POST',
+      body: JSON.stringify({ amount, currency, ...details }),
+    });
+  }
+
+  async spendCurrency(amount: number, currency: string = 'HABIT_COINS', details: any = {}): Promise<any> {
+    return this.request('/economy/spend', {
+      method: 'POST',
+      body: JSON.stringify({ amount, currency, ...details }),
+    });
+  }
+
+  async transferCurrency(toUserId: string, amount: number, currency: string = 'HABIT_COINS', description: string = 'Transfer'): Promise<any> {
+    return this.request('/economy/transfer', {
+      method: 'POST',
+      body: JSON.stringify({ toUserId, amount, currency, description }),
+    });
+  }
+
+  async processHabitCompletion(habitId: string): Promise<any> {
+    return this.request('/economy/habit-complete', {
+      method: 'POST',
+      body: JSON.stringify({ habitId }),
+    });
+  }
+
+  async searchMarketplace(filters: any = {}): Promise<any> {
+    const queryString = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryString.append(key, String(value));
+      }
+    });
+
+    const query = queryString.toString();
+    return this.request(`/economy/marketplace/search${query ? `?${query}` : ''}`);
+  }
+
+  async purchaseListing(listingId: string): Promise<any> {
+    return this.request(`/economy/marketplace/purchase/${listingId}`, {
+      method: 'POST',
+    });
+  }
+
+  async createListing(listingData: any): Promise<any> {
+    return this.request('/economy/marketplace/listings', {
+      method: 'POST',
+      body: JSON.stringify(listingData),
+    });
+  }
+
+  async getUserPowerUps(): Promise<any> {
+    return this.request('/economy/power-ups');
+  }
+
+  async usePowerUp(powerUpId: string): Promise<any> {
+    return this.request(`/economy/power-ups/use/${powerUpId}`, {
+      method: 'POST',
+    });
+  }
+
+  async getEconomyStats(): Promise<any> {
+    return this.request('/economy/stats');
+  }
+
+  async getTransactionHistory(limit: number = 20): Promise<any> {
+    return this.request(`/economy/transactions?limit=${limit}`);
+  }
+
+  // ========================================
+  // UNIQUE FEATURES: ENERGY SCHEDULING
+  // ========================================
+  async logEnergy(energyData: any): Promise<any> {
+    return this.request('/energy/log', {
+      method: 'POST',
+      body: JSON.stringify(energyData),
+    });
+  }
+
+  async logEnergyFromHabit(habitId: string, completionData: any = {}): Promise<any> {
+    return this.request(`/energy/log-from-habit/${habitId}`, {
+      method: 'POST',
+      body: JSON.stringify(completionData),
+    });
+  }
+
+  async getTodayEnergyLogs(): Promise<any> {
+    return this.request('/energy/logs/today');
+  }
+
+  async getEnergyPatterns(): Promise<any> {
+    return this.request('/energy/patterns');
+  }
+
+  async analyzeEnergyPatterns(): Promise<any> {
+    return this.request('/energy/analyze', {
+      method: 'POST',
+    });
+  }
+
+  async getCurrentEnergyLevel(): Promise<any> {
+    return this.request('/energy/current');
+  }
+
+  async generateScheduleRecommendations(habitId: string): Promise<any> {
+    return this.request(`/energy/schedule-recommendations/${habitId}`);
+  }
+
+  async getOptimalSchedule(): Promise<any> {
+    return this.request('/energy/optimal-schedule');
+  }
+
+  async createEnergyGoal(goalData: any): Promise<any> {
+    return this.request('/energy/goals', {
+      method: 'POST',
+      body: JSON.stringify(goalData),
+    });
+  }
+
+  async getEnergyGoals(): Promise<any> {
+    return this.request('/energy/goals');
+  }
+
+  async getEnergyInsights(): Promise<any> {
+    return this.request('/energy/insights');
+  }
+
+  // ========================================
+  // UNIQUE FEATURES: TIME MACHINE
+  // ========================================
+  async createScenario(scenarioData: any): Promise<any> {
+    return this.request('/timemachine/scenarios', {
+      method: 'POST',
+      body: JSON.stringify(scenarioData),
+    });
+  }
+
+  async runScenario(scenarioId: string): Promise<any> {
+    return this.request(`/timemachine/scenarios/${scenarioId}/run`, {
+      method: 'POST',
+    });
+  }
+
+  async getUserScenarios(): Promise<any> {
+    return this.request('/timemachine/scenarios');
+  }
+
+  async getScenario(scenarioId: string): Promise<any> {
+    return this.request(`/timemachine/scenarios/${scenarioId}`);
+  }
+
+  async predictFuturePerformance(timeframe: number = 30): Promise<any> {
+    return this.request(`/timemachine/predict?timeframe=${timeframe}`);
+  }
+
+  async createAlternativeTimeline(divergenceDate: string, modifications: any[]): Promise<any> {
+    return this.request('/timemachine/alternative-timeline', {
+      method: 'POST',
+      body: JSON.stringify({ divergenceDate, modifications }),
+    });
+  }
+
+  async compareStrategies(strategies: any[]): Promise<any> {
+    return this.request('/timemachine/compare-strategies', {
+      method: 'POST',
+      body: JSON.stringify({ strategies }),
+    });
+  }
+
+  async designExperiment(experimentData: any): Promise<any> {
+    return this.request('/timemachine/experiments', {
+      method: 'POST',
+      body: JSON.stringify(experimentData),
+    });
+  }
+
+  async getUserExperiments(): Promise<any> {
+    return this.request('/timemachine/experiments');
+  }
+
+  async getTimeMachineInsights(): Promise<any> {
+    return this.request('/timemachine/insights');
+  }
+
+  async whatIfAnalysis(question: string, timeframe: number = 30): Promise<any> {
+    return this.request('/timemachine/what-if', {
+      method: 'POST',
+      body: JSON.stringify({ question, timeframe }),
+    });
+  }
+
+  // ========================================
+  // UNIQUE FEATURES: QUICK NOTES (ENHANCED)
+  // ========================================
+  async getQuickNotes(filters: any = {}): Promise<any> {
+    const queryString = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryString.append(key, String(value));
+      }
+    });
+
+    const query = queryString.toString();
+    return this.request(`/quick-notes${query ? `?${query}` : ''}`);
+  }
+
+  async createQuickNote(noteData: any): Promise<any> {
+    return this.request('/quick-notes', {
+      method: 'POST',
+      body: JSON.stringify(noteData),
+    });
+  }
+
+  async updateQuickNote(noteId: string, noteData: any): Promise<any> {
+    return this.request(`/quick-notes/${noteId}`, {
+      method: 'PUT',
+      body: JSON.stringify(noteData),
+    });
+  }
+
+  async deleteQuickNote(noteId: string): Promise<any> {
+    return this.request(`/quick-notes/${noteId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async archiveQuickNote(noteId: string): Promise<any> {
+    return this.request(`/quick-notes/${noteId}/archive`, {
+      method: 'PATCH',
+    });
+  }
+
+  async toggleQuickNotePin(noteId: string): Promise<any> {
+    return this.request(`/quick-notes/${noteId}/pin`, {
+      method: 'PATCH',
+    });
+  }
+
+  async getQuickNoteCategories(): Promise<any> {
+    return this.request('/quick-notes/categories');
+  }
+
+  async getAllQuickNoteTags(): Promise<any> {
+    return this.request('/quick-notes/tags');
+  }
+
+  async getQuickNoteFolders(): Promise<any> {
+    return this.request('/quick-notes/folders');
+  }
+
+  async getQuickNotesSmartSuggestions(content: string, title?: string): Promise<any> {
+    return this.request('/quick-notes/suggestions', {
+      method: 'POST',
+      body: JSON.stringify({ content, title }),
+    });
+  }
+
+  async quickNoteBulkAction(action: string, noteIds: string[]): Promise<any> {
+    return this.request('/quick-notes/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ action, noteIds }),
+    });
+  }
 }
 
 export const api = new ApiClient();

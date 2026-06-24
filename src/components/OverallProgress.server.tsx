@@ -1,7 +1,7 @@
 import { HabitWithProgress } from '@/types';
 import { OverallProgressChart } from './charts/OverallProgressChart';
 
-const FALLBACK_COLORS = ['#3B82F6', '#F97316', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B', '#06B6D4', '#EC4899'];
+const FALLBACK_COLORS = ['#0ea5e9', '#f97316', '#10b981', '#a855f7', '#ef4444', '#f59e0b', '#06b6d4', '#ec4899'];
 
 interface OverallProgressProps {
   habits: HabitWithProgress[];
@@ -19,10 +19,10 @@ export default function OverallProgress({ habits }: OverallProgressProps) {
         value: h.days.filter(Boolean).length,
         color: h.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
       })).filter((d) => d.value > 0)
-    : [{ name: 'No data', value: 1, color: '#E5E7EB' }];
+    : [{ name: 'No data', value: 1, color: 'rgba(255, 255, 255, 0.05)' }];
 
   const hasData = habits.some((h) => h.days.some(Boolean));
-  const displayData = hasData ? pieData : [{ name: 'No completions yet', value: 1, color: '#E5E7EB' }];
+  const displayData = hasData ? pieData : [{ name: 'No completions yet', value: 1, color: 'rgba(255, 255, 255, 0.05)' }];
 
   const activeStreaks = habits.filter((h) => (h.stats?.currentStreak || 0) >= 3).length;
 

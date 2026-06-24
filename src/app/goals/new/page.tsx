@@ -69,25 +69,29 @@ export default function NewGoalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] relative overflow-x-hidden font-sans">
+      
+      {/* Background glow */}
+      <div className="absolute top-0 right-0 w-[40%] h-[40%] rounded-full bg-purple-600/5 blur-[120px] pointer-events-none" />
+
+      <header className="glass-header sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 h-16">
+          <div className="flex items-center gap-4 h-14 sm:h-16">
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-800/40 border border-transparent hover:border-slate-800 rounded-xl transition-all cursor-pointer text-slate-400 hover:text-white"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold text-gray-900">Create New Goal</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">Create New Goal</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10 page-enter">
+        <form onSubmit={handleSubmit} className="glass-panel rounded-2xl border border-slate-800/80 p-6 sm:p-8 shadow-2xl space-y-6">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               Goal Title *
             </label>
             <input
@@ -97,13 +101,13 @@ export default function NewGoalPage() {
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={100}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
               placeholder="e.g., Read 12 books this year"
             />
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               Description
             </label>
             <textarea
@@ -112,14 +116,14 @@ export default function NewGoalPage() {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={500}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+              className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm resize-none"
               placeholder="Describe your goal..."
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="targetValue" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="targetValue" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Target Value *
               </label>
               <input
@@ -129,13 +133,13 @@ export default function NewGoalPage() {
                 onChange={(e) => setTargetValue(parseInt(e.target.value) || 0)}
                 min={1}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                 placeholder="12"
               />
             </div>
 
             <div>
-              <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="unit" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Unit (optional)
               </label>
               <input
@@ -144,15 +148,15 @@ export default function NewGoalPage() {
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 maxLength={20}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 placeholder-slate-600 font-medium text-sm"
                 placeholder="books, kg, hours..."
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="targetDate" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="targetDate" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Target Date *
               </label>
               <input
@@ -162,12 +166,13 @@ export default function NewGoalPage() {
                 onChange={(e) => setTargetDate(e.target.value)}
                 required
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 font-medium text-sm"
+                style={{ colorScheme: 'dark' }}
               />
             </div>
 
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="category" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Category *
               </label>
               <select
@@ -175,11 +180,11 @@ export default function NewGoalPage() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-[#0a0f1d] border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 font-medium text-sm"
               >
-                <option value="">Select a category</option>
+                <option value="" className="bg-[#0a0f1d]">Select a category</option>
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
+                  <option key={cat} value={cat} className="bg-[#0a0f1d]">
                     {cat}
                   </option>
                 ))}
@@ -187,36 +192,37 @@ export default function NewGoalPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
+          {/* Goal Preview card */}
+          <div className="flex items-center gap-4 p-4.5 bg-slate-950/40 border border-slate-850 rounded-2xl">
+            <div className="w-12 h-12 bg-sky-500/10 border border-sky-500/20 rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-sky-400" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-800">{title || 'Goal Title'}</h3>
-              <p className="text-sm text-gray-500">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm text-slate-100 truncate">{title || 'Goal Preview'}</h3>
+              <p className="text-xs text-slate-400 font-medium mt-1">
                 {targetValue} {unit || ''} by {targetDate ? new Date(targetDate).toLocaleDateString() : 'Not set'}
               </p>
             </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-400 text-sm font-medium">
               {error}
             </div>
           )}
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 pt-2">
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 px-6 py-3 border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              className="flex-1 px-6 py-3.5 border border-slate-800 hover:bg-slate-800/40 text-slate-300 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 btn-glow bg-gradient-to-r from-sky-500 to-purple-600 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(56,189,248,0.15)] cursor-pointer"
             >
               {loading ? 'Creating...' : 'Create Goal'}
             </button>

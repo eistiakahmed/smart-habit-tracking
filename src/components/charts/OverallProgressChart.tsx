@@ -25,15 +25,16 @@ export function OverallProgressChart({
   habitColors,
 }: OverallProgressChartProps) {
   const stats = [
-    { label: 'Total Habits', value: totalHabits, icon: Target, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { label: 'Days Completed', value: totalCompleted, icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-50' },
-    { label: 'Days Remaining', value: totalRemaining, icon: Clock, color: 'text-orange-500', bg: 'bg-orange-50' },
+    { label: 'Total Habits', value: totalHabits, icon: Target, color: 'text-sky-400', border: 'border-sky-500/25', bg: 'bg-sky-500/8' },
+    { label: 'Days Completed', value: totalCompleted, icon: CheckCircle2, color: 'text-emerald-400', border: 'border-emerald-500/25', bg: 'bg-emerald-500/8' },
+    { label: 'Days Remaining', value: totalRemaining, icon: Clock, color: 'text-orange-400', border: 'border-orange-500/25', bg: 'bg-orange-500/8' },
     {
       label: 'Active Streaks',
       value: activeStreaks,
       icon: Flame,
-      color: 'text-purple-500',
-      bg: 'bg-purple-50',
+      color: 'text-purple-400',
+      border: 'border-purple-500/25',
+      bg: 'bg-purple-500/8',
     },
   ];
 
@@ -41,23 +42,23 @@ export function OverallProgressChart({
     if (!active || !payload?.length) return null;
     const d = payload[0];
     return (
-      <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2">
+      <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl shadow-2xl px-3.5 py-2.5 font-sans">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.payload.color }} />
-          <span className="text-xs font-semibold text-gray-700">{d.name}</span>
+          <span className="w-2.5 h-2.5 rounded-full shadow-[0_0_6px_rgba(255,255,255,0.2)]" style={{ backgroundColor: d.payload.color }} />
+          <span className="text-xs font-bold text-slate-100">{d.name}</span>
         </div>
-        <p className="text-xs text-gray-500 mt-0.5">{d.value} days completed</p>
+        <p className="text-[11px] text-slate-400 mt-1 font-semibold">{d.value} days completed</p>
       </div>
     );
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
-      <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 sm:mb-6">Overall Progress</h2>
+    <div className="glass-panel rounded-2xl border border-slate-800/80 p-4 sm:p-6 shadow-2xl font-sans">
+      <h2 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 tracking-tight">Overall Progress</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* Pie chart */}
-        <div>
+        <div className="flex flex-col justify-center">
           <div className="relative">
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -80,18 +81,18 @@ export function OverallProgressChart({
             </ResponsiveContainer>
             {/* Center label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-bold text-gray-800">{completionPct}%</span>
-              <span className="text-xs text-gray-400">complete</span>
+              <span className="text-3xl font-black text-white tracking-tight">{completionPct}%</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mt-0.5">complete</span>
             </div>
           </div>
 
           {/* Per-habit legend */}
           {hasData && (
-            <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-3 justify-center">
+            <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-4 justify-center">
               {habitColors.map((h) => (
-                <div key={h.id} className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: h.color }} />
-                  <span className="text-[11px] text-gray-500 truncate max-w-[90px]">{h.title}</span>
+                <div key={h.id} className="flex items-center gap-1.5 bg-slate-950/20 px-2 py-1 rounded-lg border border-slate-900/60">
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: h.color }} />
+                  <span className="text-[10px] font-bold text-slate-400 truncate max-w-[85px]">{h.title}</span>
                 </div>
               ))}
             </div>
@@ -100,33 +101,38 @@ export function OverallProgressChart({
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 gap-3">
-          {stats.map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className={`${bg} rounded-xl p-3 sm:p-4 text-center`}>
-              <Icon className={`w-5 h-5 mx-auto mb-1.5 ${color}`} />
-              <div className="text-lg sm:text-xl font-bold text-gray-800">{value}</div>
-              <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{label}</div>
+          {stats.map(({ label, value, icon: Icon, color, border, bg }) => (
+            <div key={label} className={`${bg} border ${border} rounded-2xl p-3 sm:p-4 text-center hover:scale-102 transition-transform duration-200`}>
+              <Icon className={`w-5 h-5 mx-auto mb-2 ${color}`} />
+              <div className="text-xl sm:text-2xl font-black text-slate-100">{value}</div>
+              <div className="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1 leading-tight">{label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Total progress bar */}
-      <div className="mt-5 pt-5 border-t border-gray-100">
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-gray-500 text-xs sm:text-sm">Total Progress</span>
-          <span className="font-semibold text-gray-800 text-xs sm:text-sm">{totalCompleted} / {totalHabits * 30} days</span>
+      <div className="mt-5 pt-5 border-t border-slate-800/40">
+        <div className="flex items-center justify-between text-sm mb-2 font-semibold text-slate-400">
+          <span className="text-xs tracking-wide">Total Journey Progress</span>
+          <span className="text-xs text-slate-300 font-bold">{totalCompleted} / {totalHabits * 30} days</span>
         </div>
+        
         {/* Segmented progress bar — each habit its own color */}
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex">
-          {habitColors.map((h, i) => {
-            const habitPct = totalHabits * 30 > 0 ? (totalCompleted / (totalHabits * 30)) * 100 : 0;
-            const pct = habitColors.length > 0 ? habitPct / habitColors.length : 0;
-            return pct > 0 ? (
+        <div className="h-2 bg-slate-950/60 border border-slate-800/80 rounded-full overflow-hidden flex p-[1px]">
+          {habitColors.map((h) => {
+            const habitCompletions = displayData.find(d => d.name === h.title)?.value || 0;
+            const habitPct = totalHabits * 30 > 0 ? (habitCompletions / (totalHabits * 30)) * 100 : 0;
+            return habitPct > 0 ? (
               <div
                 key={h.id}
-                className="h-full transition-all duration-500"
-                style={{ width: `${pct}%`, backgroundColor: h.color }}
-                title={`${h.title}: ${Math.round(pct)}%`}
+                className="h-full transition-all duration-500 rounded-full"
+                style={{ 
+                  width: `${habitPct}%`, 
+                  backgroundColor: h.color,
+                  boxShadow: `0 0 6px ${h.color}35`
+                }}
+                title={`${h.title}: ${habitCompletions} completions`}
               />
             ) : null;
           })}

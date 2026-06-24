@@ -34,9 +34,10 @@ export function setAuthCookies(tokens: { accessToken: string; refreshToken: stri
   ];
 
   cookieList.forEach(cookie => {
+    // client-side cookies cannot have HttpOnly set via document.cookie
     const serializedCookie = `${cookie.name}=${encodeURIComponent(cookie.value)}; ` +
       `Max-Age=${cookie.options.maxAge}; Path=${cookie.options.path}; ` +
-      `HttpOnly; ${cookie.options.secure ? 'Secure; ' : ''}SameSite=${cookie.options.sameSite}`;
+      `${cookie.options.secure ? 'Secure; ' : ''}SameSite=${cookie.options.sameSite}`;
 
     if (typeof document !== 'undefined') {
       document.cookie = serializedCookie;
@@ -53,4 +54,16 @@ export function clearAuthCookies() {
       document.cookie = cookie;
     }
   });
+}
+
+export function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
 }

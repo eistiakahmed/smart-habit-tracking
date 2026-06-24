@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Share2, ArrowLeft } from 'lucide-react';
+import { Users, Share2, ArrowLeft, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export default function SocialPage() {
@@ -50,58 +50,65 @@ export default function SocialPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fb]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      <div className="min-h-screen flex items-center justify-center bg-[#050a15]">
+        <Loader2 className="animate-spin h-8 w-8 text-sky-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] mobile-page-padding">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] mobile-page-padding relative overflow-x-hidden font-sans">
+      
+      {/* Decorative background mesh */}
+      <div className="absolute top-0 right-0 w-[40%] h-[40%] rounded-full bg-indigo-600/5 blur-[120px] pointer-events-none" />
+
+      <header className="glass-header sticky top-0 z-50 shadow-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 h-14 sm:h-16">
-            <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-lg">
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <button 
+              onClick={() => router.back()} 
+              className="p-2 hover:bg-slate-800/40 border border-transparent hover:border-slate-800 rounded-xl transition-all cursor-pointer text-slate-400 hover:text-white"
+            >
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">Social</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">Social Connection</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 relative z-10 page-enter">
         {pendingRequests.length > 0 && (
-          <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Users className="w-5 h-5" />
+          <div className="mb-8 glass-panel rounded-2xl border border-slate-800/80 p-5 sm:p-6 shadow-2xl">
+            <h2 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2 tracking-tight">
+              <Users className="w-5 h-5 text-sky-400" />
               Pending Friend Requests ({pendingRequests.length})
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {pendingRequests.map((request) => (
-                <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={request.id} className="flex items-center justify-between p-3.5 bg-slate-950/40 border border-slate-900 rounded-xl">
                   <div className="flex items-center gap-3">
                     {request.sender?.avatar ? (
-                      <img src={request.sender.avatar} alt="" className="w-10 h-10 rounded-full" />
+                      <img src={request.sender.avatar} alt="" className="w-10 h-10 rounded-full object-cover border border-slate-700" />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm border border-slate-700">
                         {request.sender?.username?.[0]?.toUpperCase()}
                       </div>
                     )}
                     <div>
-                      <div className="font-medium text-gray-900">{request.sender?.username}</div>
-                      {request.message && <div className="text-sm text-gray-500">{request.message}</div>}
+                      <div className="font-bold text-slate-200 text-sm">{request.sender?.username}</div>
+                      {request.message && <div className="text-xs text-slate-400 mt-1">{request.message}</div>}
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleRespondRequest(request.id, true)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600"
+                      className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                     >
                       Accept
                     </button>
                     <button
                       onClick={() => handleRespondRequest(request.id, false)}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+                      className="px-4 py-2 bg-slate-900 border border-slate-800 text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-800/40 transition-colors cursor-pointer"
                     >
                       Decline
                     </button>
@@ -113,27 +120,32 @@ export default function SocialPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Users className="w-5 h-5" />
+          
+          {/* Friends list */}
+          <div className="glass-panel rounded-2xl border border-slate-800/80 p-5 sm:p-6 shadow-2xl">
+            <h2 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2 tracking-tight">
+              <Users className="w-5 h-5 text-sky-400" />
               Friends ({friends.length})
             </h2>
             {friends.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No friends yet. Send friend requests to connect!</p>
+              <div className="text-center py-12 text-slate-500">
+                <p className="text-sm font-semibold">No friends added yet</p>
+                <p className="text-xs text-slate-600 mt-1">Send requests to colleagues to compete!</p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {friends.map((friend) => (
-                  <div key={friend.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div key={friend.id} className="flex items-center gap-3.5 p-3 bg-slate-950/40 border border-slate-900/60 rounded-xl hover:bg-slate-900/40 transition-colors">
                     {friend.avatar ? (
-                      <img src={friend.avatar} alt="" className="w-10 h-10 rounded-full" />
+                      <img src={friend.avatar} alt="" className="w-10 h-10 rounded-full object-cover border border-slate-700" />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm border border-slate-700">
                         {friend.username?.[0]?.toUpperCase()}
                       </div>
                     )}
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{friend.username}</div>
-                      <div className="text-sm text-gray-500">{friend.totalPoints || 0} pts</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-slate-200 text-sm truncate">{friend.username}</div>
+                      <div className="text-xs text-slate-400 font-semibold mt-1">{friend.totalPoints || 0} activity pts</div>
                     </div>
                   </div>
                 ))}
@@ -141,57 +153,59 @@ export default function SocialPage() {
             )}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Share2 className="w-5 h-5" />
-              Leaderboard
+          {/* Leaderboard list */}
+          <div className="glass-panel rounded-2xl border border-slate-800/80 p-5 sm:p-6 shadow-2xl">
+            <h2 className="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2 tracking-tight">
+              <Share2 className="w-5 h-5 text-purple-400" />
+              Leaderboard Standings
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {leaderboard.slice(0, 10).map((entry, index) => (
-                <div key={entry.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                    index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                    index === 1 ? 'bg-gray-300 text-gray-700' :
-                    index === 2 ? 'bg-orange-400 text-orange-900' :
-                    'bg-gray-200 text-gray-600'
+                <div key={entry.id} className="flex items-center gap-3 p-3 bg-slate-950/40 border border-slate-900/60 rounded-xl hover:bg-slate-900/30 transition-colors">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs border ${
+                    index === 0 ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]' :
+                    index === 1 ? 'bg-slate-300/10 border-slate-300/30 text-slate-300' :
+                    index === 2 ? 'bg-amber-700/10 border-amber-700/30 text-amber-500' :
+                    'bg-slate-900/60 border-slate-800 text-slate-500'
                   }`}>
                     {index + 1}
                   </div>
                   {entry.avatar ? (
-                    <img src={entry.avatar} alt="" className="w-8 h-8 rounded-full" />
+                    <img src={entry.avatar} alt="" className="w-8 h-8 rounded-full object-cover border border-slate-800" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-850 flex items-center justify-center text-slate-300 text-xs font-bold">
                       {entry.username?.[0]?.toUpperCase()}
                     </div>
                   )}
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 text-sm">{entry.username}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-slate-200 text-xs truncate">{entry.username}</div>
                   </div>
-                  <div className="text-sm font-semibold text-blue-600">{entry.totalPoints || 0} pts</div>
+                  <div className="text-xs font-black text-sky-400">{entry.totalPoints || 0} pts</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
+        {/* Activity feed */}
         {activity.length > 0 && (
-          <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Friend Activity</h2>
-            <div className="space-y-3">
+          <div className="mt-6 glass-panel rounded-2xl border border-slate-800/80 p-5 sm:p-6 shadow-2xl">
+            <h2 className="text-base sm:text-lg font-bold text-white mb-4 tracking-tight">Friend Activity Feed</h2>
+            <div className="space-y-3.5">
               {activity.map((act, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 border-b border-gray-100 last:border-0">
+                <div key={index} className="flex items-center gap-3.5 p-3 border-b border-slate-800/40 last:border-0">
                   {act.user?.avatar ? (
-                    <img src={act.user.avatar} alt="" className="w-8 h-8 rounded-full" />
+                    <img src={act.user.avatar} alt="" className="w-8 h-8 rounded-full object-cover border border-slate-800" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                      {act.user?.username?.[0]}
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-850 flex items-center justify-center text-slate-400 text-xs font-semibold">
+                      {act.user?.username?.[0]?.toUpperCase()}
                     </div>
                   )}
-                  <div className="flex-1 text-sm">
-                    <span className="font-medium text-gray-900">{act.user?.username}</span>
-                    <span className="text-gray-500"> {act.activity}</span>
+                  <div className="flex-1 text-xs leading-relaxed">
+                    <span className="font-bold text-slate-200">{act.user?.username}</span>
+                    <span className="text-slate-400 font-medium"> {act.activity}</span>
                   </div>
-                  <span className="text-xs text-gray-400">{act.timeAgo}</span>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{act.timeAgo}</span>
                 </div>
               ))}
             </div>

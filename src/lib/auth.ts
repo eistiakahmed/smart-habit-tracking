@@ -11,6 +11,7 @@ export interface RegisterData {
   password: string;
   firstName?: string;
   lastName?: string;
+  avatar?: File | null;
 }
 
 export interface AuthResponse {
@@ -100,12 +101,29 @@ export class AuthService {
   }
 
   static async register(userData: RegisterData): Promise<AuthResponse> {
+    let body: any;
+    let headers: Record<string, string> = {};
+
+    if (userData.avatar) {
+      const formData = new FormData();
+      formData.append('avatar', userData.avatar);
+      formData.append('username', userData.username);
+      formData.append('email', userData.email);
+      formData.append('password', userData.password);
+      if (userData.firstName) formData.append('firstName', userData.firstName);
+      if (userData.lastName) formData.append('lastName', userData.lastName);
+      body = formData;
+      // Do not set Content-Type header so the browser sets the boundary automatically
+    } else {
+      headers['Content-Type'] = 'application/json';
+      const { avatar, ...jsonFields } = userData;
+      body = JSON.stringify(jsonFields);
+    }
+
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
+      headers,
+      body,
     });
 
     if (!response.ok) {

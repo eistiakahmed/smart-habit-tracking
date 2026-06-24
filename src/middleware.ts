@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const publicPaths = ['/login', '/register'];
-const protectedPaths = ['/'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get('access_token')?.value;
 
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path)) ||
+  // Check if it's the root path (exact match) or starts with protected routes
+  const isProtectedPath = pathname === '/' ||
                           pathname.startsWith('/habits') ||
                           pathname.startsWith('/goals') ||
                           pathname.startsWith('/analytics') ||

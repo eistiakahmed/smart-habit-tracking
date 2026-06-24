@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, LoginCredentials, RegisterData } from '@/lib/auth';
-import { setAuthCookies, clearAuthCookies } from '@/lib/cookies';
+import { setAuthCookies, clearAuthCookies, getCookie } from '@/lib/cookies';
 import { User } from '@/types';
 
 interface AuthContextType {
@@ -13,6 +13,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   isAuthenticated: boolean;
+  updateUser: (updatedUser: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,8 +24,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAuth = () => {
-      const storedUser = authService.getUser();
-      const token = authService.getToken();
+      let storedUser = authService.getUser();
+      let token = authService.getToken();
+
+      // Fallback to cookies if localStorage is empty
+      if (!storedUser || !token) {
+        const cookieUserStr = getCookie('user');
+        const cookieToken = getCookie('access_token');
+        if (cookieUserStr && cookieToken) {
+          try {
+            storedUser = JSON.parse(cookieUserStr);
+            token = cookieToken;
+            authService.setUser(storedUser);
+            authService.setToken(token);
+            const refreshT = getCookie('refresh_token');
+            if (refreshT) {
+              authService.setRefreshToken(refreshT);
+            }
+          } catch (e) {
+            console.error('Error restoring session from cookies:', e);
+          }
+        }
+      }
 
       if (storedUser && token) {
         setUser(storedUser);
@@ -75,6 +96,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    authService.setUser(updatedUser);
+    setAuthCookies(
+      {
+        accessToken: authService.getToken() || '',
+        refreshToken: authService.getRefreshToken() || '',
+      },
+      updatedUser
+    );
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -85,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         refreshSession,
         isAuthenticated: !!user,
+        updateUser,
       }}
     >
       {children}

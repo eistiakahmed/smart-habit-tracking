@@ -29,13 +29,12 @@ const categoryIcons: Record<string, React.ElementType> = {
 export default function HabitRow({
   habitName,
   days,
-  color = '#3B82F6',
+  color = '#0ea5e9',
   category,
   icon,
   onDayToggle,
   disabled = false,
 }: HabitRowProps) {
-  const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const weekColors = getWeekColors();
   const weeks = groupIntoWeeks(days);
   const IconComponent = category ? categoryIcons[category] || Target : Target;
@@ -44,20 +43,24 @@ export default function HabitRow({
   const progress = Math.round((completedCount / days.length) * 100);
 
   return (
-    <div className="flex items-center gap-4 py-3 px-6 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-      <div className="flex-shrink-0 w-40 text-sm font-medium text-gray-700 sticky left-0 bg-inherit flex items-center gap-2">
+    <div className="flex items-center gap-4 py-3.5 px-6 border-b border-slate-800/40 hover:bg-slate-900/30 transition-all group font-sans">
+      {/* Sticky Left Column with Solid Glass Background */}
+      <div className="flex-shrink-0 w-44 text-sm font-semibold text-slate-200 sticky left-0 z-10 bg-[#080d19] pr-3 flex items-center gap-2.5">
         <div
-          className="w-6 h-6 rounded flex items-center justify-center"
-          style={{ backgroundColor: color + '20' }}
+          className="w-7 h-7 rounded-lg flex items-center justify-center border transition-colors"
+          style={{ 
+            backgroundColor: `${color}15`,
+            borderColor: `${color}30`
+          }}
         >
           <IconComponent className="w-4 h-4" style={{ color }} />
         </div>
-        <span className="truncate">{habitName}</span>
+        <span className="truncate group-hover:text-white transition-colors">{habitName}</span>
       </div>
 
-      <div className="flex gap-2 flex-1 overflow-x-auto scrollbar-thin">
+      <div className="flex gap-4 flex-1 overflow-x-auto scrollbar-none py-1">
         {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="flex gap-1">
+          <div key={weekIndex} className="flex gap-1.5 bg-slate-950/20 p-1.5 rounded-xl border border-slate-900">
             {week.map((day, dayIndex) => {
               const globalDayIndex = weekIndex * 7 + dayIndex;
               const weekColorValues = Object.values(weekColors);
@@ -80,10 +83,12 @@ export default function HabitRow({
 
       <div className="flex-shrink-0 w-20 text-right">
         <span
-          className="text-xs font-semibold px-2 py-1 rounded-full"
+          className="text-xs font-bold px-2.5 py-1 rounded-full border"
           style={{
-            backgroundColor: color + '20',
+            backgroundColor: `${color}12`,
+            borderColor: `${color}30`,
             color,
+            boxShadow: `0 0 8px ${color}10`
           }}
         >
           {progress}%
