@@ -1,4 +1,12 @@
-import { api, ApiResponse } from '@/lib/api';
+import { api } from '@/lib/api';
+
+// Define ApiResponse locally if not exported
+interface ApiResponse<T = any> {
+  success?: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
 
 // Types for Habit DNA System
 export interface HabitGenetics {
@@ -96,36 +104,36 @@ export interface BreedingSuggestion {
 // Habit DNA API Service
 class HabitDNAService {
   async analyzeHabitGenetics(habitId: string): Promise<ApiResponse<{ dna: HabitDNAResponse; insights: any }>> {
-    return api.post<ApiResponse<{ dna: HabitDNAResponse; insights: any }>>(`/habit-dna/analyze/${habitId}`);
+    return (api as any).post(`/habit-dna/analyze/${habitId}`);
   }
 
   async breedHabits(parentId1: string, parentId2: string): Promise<ApiResponse<any>> {
-    return api.post<ApiResponse<any>>('/habit-dna/breed', {
+    return (api as any).post('/habit-dna/breed', {
       parentId1,
       parentId2,
     });
   }
 
   async getBreedingSuggestions(habitId: string): Promise<ApiResponse<{ suggestions: BreedingSuggestion[] }>> {
-    return api.get<ApiResponse<{ suggestions: BreedingSuggestion[] }>>(`/habit-dna/breeding-suggestions/${habitId}`);
+    return (api as any).get(`/habit-dna/breeding-suggestions/${habitId}`);
   }
 
   async mutateHabit(habitId: string, forcedType?: string): Promise<ApiResponse<any>> {
-    return api.post<ApiResponse<any>>(`/habit-dna/mutate/${habitId}`, {
+    return (api as any).post(`/habit-dna/mutate/${habitId}`, {
       forcedType,
     });
   }
 
   async getGeneticInsights(habitId: string): Promise<ApiResponse<any>> {
-    return api.get<ApiResponse<any>>(`/habit-dna/insights/${habitId}`);
+    return (api as any).get(`/habit-dna/insights/${habitId}`);
   }
 
   async getHabitFamilyTree(habitId: string): Promise<ApiResponse<any>> {
-    return api.get<ApiResponse<any>>(`/habit-dna/family-tree/${habitId}`);
+    return (api as any).get(`/habit-dna/family-tree/${habitId}`);
   }
 
   async getUserHabitDNA(): Promise<ApiResponse<{ dnas: HabitDNAResponse[] }>> {
-    return api.get<ApiResponse<{ dnas: HabitDNAResponse[] }>>('/habit-dna/my-dnas');
+    return (api as any).get('/habit-dna/my-dnas');
   }
 }
 

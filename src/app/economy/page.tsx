@@ -1,7 +1,27 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useCallback, useEffect, useState } from 'react';
 import { WalletDashboard } from '@/components/unique-features/WalletDashboard';
 import { Marketplace } from '@/components/unique-features/Marketplace';
 import { api } from '@/lib/api';
+
+const leaderboardBalances = [10380, 10125, 9960, 9845, 9710];
+
+interface PowerUp {
+  id: string;
+  type: string;
+  rarity: string;
+  name: string;
+  description: string;
+  uses: number;
+  maxUses: number;
+  active?: boolean;
+  expiresAt?: string;
+}
+
+interface Activity {
+  description: string;
+}
 
 export default function VirtualEconomyPage() {
   return (
@@ -18,13 +38,13 @@ export default function VirtualEconomyPage() {
         <div className="lg:col-span-2 space-y-6">
           <WalletDashboard userId="current" />
           <Marketplace userId="current" />
-          <PowerUpsPanel userId="current" />
+          <PowerUpsPanel />
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
           <EconomyLeaderboard />
-          <RecentActivity userId="current" />
+          <RecentActivity />
           <CurrencyConverter />
         </div>
       </div>
@@ -32,24 +52,24 @@ export default function VirtualEconomyPage() {
   );
 }
 
-function PowerUpsPanel({ userId }: { userId: string }) {
-  const [powerUps, setPowerUps] = useState<any[]>([]);
+function PowerUpsPanel() {
+  const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPowerUps();
-  }, [userId]);
-
-  const loadPowerUps = async () => {
+  const loadPowerUps = useCallback(async () => {
     try {
-      const response = await api.getUserPowerUps();
+      const response = await api.getUserPowerUps() as { powerUps?: PowerUp[] };
       setPowerUps(response.powerUps || []);
     } catch (error) {
       console.error('Failed to load power-ups:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(loadPowerUps);
+  }, [loadPowerUps]);
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
@@ -68,7 +88,7 @@ function PowerUpsPanel({ userId }: { userId: string }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {powerUps.map((powerUp: any) => (
+          {powerUps.map((powerUp) => (
             <PowerUpCard
               key={powerUp.id}
               powerUp={powerUp}
@@ -85,7 +105,7 @@ function PowerUpsPanel({ userId }: { userId: string }) {
 }
 
 interface PowerUpCardProps {
-  powerUp: any;
+  powerUp: PowerUp;
   onUse: (powerUpId: string) => void;
 }
 
@@ -136,8 +156,6 @@ function PowerUpCard({ powerUp, onUse }: PowerUpCardProps) {
 }
 
 function EconomyLeaderboard() {
-  const [topUsers, setTopUsers] = useState<any[]>([]);
-
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
       <h3 className="font-semibold text-gray-900 mb-4">🏆 Economy Leaders</h3>
@@ -154,7 +172,7 @@ function EconomyLeaderboard() {
             </div>
             <div className="flex-1">
               <div className="font-medium text-gray-900">User #{rank}</div>
-              <div className="text-xs text-gray-600">{(10000 - rank * 100) + Math.floor(Math.random() * 500)} 💰</div>
+              <div className="text-xs text-gray-600">{leaderboardBalances[i]} 💰</div>
             </div>
           </div>
         ))}
@@ -163,8 +181,8 @@ function EconomyLeaderboard() {
   );
 }
 
-function RecentActivity({ userId }: { userId: string }) {
-  const [activities, setActivities] = useState<any[]>([]);
+function RecentActivity() {
+  const [activities] = useState<Activity[]>([]);
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
@@ -173,7 +191,7 @@ function RecentActivity({ userId }: { userId: string }) {
         {activities.length === 0 ? (
           <p className="text-center text-gray-500 py-4">No recent activity</p>
         ) : (
-          activities.map((activity: any, index: number) => (
+          activities.map((activity, index) => (
             <div key={index} className="text-xs text-gray-700 p-2 bg-gray-50 rounded">
               {activity.description}
             </div>

@@ -1,10 +1,10 @@
-import { Habit } from '@/types';
+import { HabitWithProgress } from '@/types';
 import ProgressBar from './ProgressBar';
 import { getProgressColor } from '@/lib/utils';
 import { Droplets, Dumbbell, BookOpen, Brain, Apple, Zap, Target, Heart, Flame } from 'lucide-react';
 
 interface TopHabitsProps {
-  habits: Habit[];
+  habits: HabitWithProgress[];
   maxHabits?: number;
 }
 
@@ -31,13 +31,19 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function TopHabits({ habits, maxHabits = 10 }: TopHabitsProps) {
+  const getHabitProgress = (habit: HabitWithProgress) => {
+    const total = habit.days.length || 30;
+    const completed = habit.days.filter(Boolean).length;
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  };
+
   const topHabits = habits
     .filter(h => h.isActive)
-    .sort((a, b) => (b.stats?.completionRate || 0) - (a.stats?.completionRate || 0))
+    .sort((a, b) => getHabitProgress(b) - getHabitProgress(a))
     .slice(0, maxHabits);
 
-  const totalCompleted = habits.reduce((sum, h) => sum + (h.stats?.daysCompleted || 0), 0);
-  const totalDays = habits.reduce((sum, h) => sum + (h.stats?.totalDays || 0), 0);
+  const totalCompleted = habits.reduce((sum, h) => sum + h.days.filter(Boolean).length, 0);
+  const totalDays = habits.reduce((sum, h) => sum + (h.days.length || 30), 0);
   const overallProgress = totalDays > 0 ? Math.round((totalCompleted / totalDays) * 100) : 0;
 
   return (
@@ -69,7 +75,7 @@ export default function TopHabits({ habits, maxHabits = 10 }: TopHabitsProps) {
           </div>
         ) : (
           topHabits.map((habit) => {
-            const progress = habit.stats?.completionRate || 0;
+            const progress = getHabitProgress(habit);
             const streak = habit.stats?.currentStreak || 0;
             const IconComponent = categoryIcons[habit.category] || Target;
             const defaultColor = categoryColors[habit.category] || '#6B7280';

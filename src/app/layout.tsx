@@ -23,6 +23,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#050a15",
 };
 
 export default function RootLayout({
@@ -34,8 +36,8 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${outfit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#050a15] text-[#f8fafc] overflow-x-hidden relative">
         {/* Ambient Gradient Background Glows */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/10 blur-[100px] pointer-events-none z-0" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[55%] h-[55%] rounded-full bg-purple-950/10 blur-[120px] pointer-events-none z-0" />
+        <div className="fixed top-[-12%] left-[-18%] w-[18rem] sm:w-[50%] h-[18rem] sm:h-[50%] rounded-full bg-indigo-900/10 blur-[70px] sm:blur-[100px] pointer-events-none z-0" />
+        <div className="fixed bottom-[-12%] right-[-18%] w-[20rem] sm:w-[55%] h-[20rem] sm:h-[55%] rounded-full bg-purple-950/10 blur-[80px] sm:blur-[120px] pointer-events-none z-0" />
         
         <AuthProvider>
           <div className="relative z-10 flex-1 flex flex-col">
@@ -47,4 +49,3 @@ export default function RootLayout({
     </html>
   );
 }
-

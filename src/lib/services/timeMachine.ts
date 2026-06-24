@@ -1,4 +1,12 @@
-import { api, ApiResponse } from '@/lib/api';
+import { api } from '@/lib/api';
+
+// Define ApiResponse locally if not exported
+interface ApiResponse<T = any> {
+  success?: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
 
 // Types for Time Machine (What-If Scenarios)
 export interface Scenario {
@@ -117,11 +125,11 @@ export interface PredictionResult {
 class TimeMachineService {
   // Scenario Management
   async createScenario(scenarioData: any): Promise<ApiResponse<Scenario>> {
-    return api.post<ApiResponse<Scenario>>('/timemachine/scenarios', scenarioData);
+    return (api as any).post('/timemachine/scenarios', scenarioData);
   }
 
   async runScenario(scenarioId: string): Promise<ApiResponse<any>> {
-    return api.post<ApiResponse<any>>(`/timemachine/scenarios/${scenarioId}/run`);
+    return (api as any).post(`/timemachine/scenarios/${scenarioId}/run`);
   }
 
   async getScenario(scenarioId: string): Promise<ApiResponse<{ scenario: Scenario }>> {

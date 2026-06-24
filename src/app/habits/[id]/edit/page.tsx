@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Trash2, Loader2, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Habit } from '@/types';
+import { IconPicker } from '@/components/shared/IconPicker';
+import { HabitIcon } from '@/components/shared/HabitIcon';
+import { EMOJI_TO_LUCIDE_MAP } from '@/lib/utils/iconUtils';
 
 const CATEGORIES = [
   'Health',
@@ -32,27 +35,9 @@ const COLORS = [
   { name: 'Cyan', value: '#06b6d4' },
 ];
 
-const ICONS = [
-  { name: 'Target', emoji: '🎯' },
-  { name: 'Star', emoji: '⭐' },
-  { name: 'Fire', emoji: '🔥' },
-  { name: 'Heart', emoji: '❤️' },
-  { name: 'Book', emoji: '📚' },
-  { name: 'Dumbbell', emoji: '💪' },
-  { name: 'Water', emoji: '💧' },
-  { name: 'Brain', emoji: '🧠' },
-  { name: 'Apple', emoji: '🍎' },
-  { name: 'Zap', emoji: '⚡' },
-  { name: 'Check', emoji: '✅' },
-  { name: 'Moon', emoji: '🌙' },
-  { name: 'Sun', emoji: '☀️' },
-  { name: 'Money', emoji: '💰' },
-  { name: 'Music', emoji: '🎵' },
-  { name: 'Art', emoji: '🎨' },
-];
-
-export default function EditHabitPage({ params }: { params: { id: string } }) {
+export default function EditHabitPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { id } = use(params); // Unwrap the params Promise for Next.js 16 compatibility
   const [habit, setHabit] = useState<Habit | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -62,7 +47,7 @@ export default function EditHabitPage({ params }: { params: { id: string } }) {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [color, setColor] = useState('#0ea5e9');
-  const [icon, setIcon] = useState('🎯');
+  const [icon, setIcon] = useState('Target');
   const [frequency, setFrequency] = useState<'DAILY' | 'WEEKLY' | 'CUSTOM'>('DAILY');
   const [targetDays, setTargetDays] = useState(30);
   const [reminderTime, setReminderTime] = useState('');
@@ -76,15 +61,17 @@ export default function EditHabitPage({ params }: { params: { id: string } }) {
   const fetchHabit = async () => {
     try {
       setLoading(true);
-      const response = await api.getHabit(params.id);
-      const data = response.habit || response; // Handle both response formats
+      const response = await api.getHabit(id);
+      const data = 'habit' in response ? (response as any).habit : response; // Handle both response formats
       setHabit(data);
 
       setTitle(data.title);
       setDescription(data.description || '');
       setCategory(data.category);
       setColor(data.color);
-      setIcon(data.icon || '🎯');
+      // Normalize icon: convert legacy emojis to Lucide icon names
+      const normalizedIcon = EMOJI_TO_LUCIDE_MAP[data.icon] || data.icon || 'Target';
+      setIcon(normalizedIcon);
       setFrequency(data.frequency);
       setTargetDays(data.targetDays);
       setReminderTime(data.reminderTime || '');
@@ -115,7 +102,7 @@ export default function EditHabitPage({ params }: { params: { id: string } }) {
     setSaving(true);
 
     try {
-      await api.updateHabit(params.id, {
+      await api.updateHabit(id, {
         title: title.trim(),
         description: description.trim() || undefined,
         category,
@@ -142,7 +129,7 @@ export default function EditHabitPage({ params }: { params: { id: string } }) {
     }
 
     try {
-      await api.deleteHabit(params.id);
+      await api.deleteHabit(id);
       router.push('/habits');
     } catch (err: any) {
       setError(err.message || 'Failed to delete habit');
@@ -255,16 +242,12 @@ export default function EditHabitPage({ params }: { params: { id: string } }) {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5">Emoji Icon</label>
-              <div className="flex flex-wrap gap-2">
-                {ICONS.map((i) => (
-                  <button key={i.name} type="button" onClick={() => setIcon(i.emoji)}
-                    className={`w-9 h-9 rounded-xl border bg-slate-950/40 flex items-center justify-center text-lg transition-all cursor-pointer ${icon === i.emoji ? 'border-sky-500 scale-110 shadow-[0_0_8px_rgba(14,165,233,0.25)]' : 'border-slate-850 hover:border-slate-800'}`}
-                    title={i.name}>
-                    {i.emoji}
-                  </button>
-                ))}
-              </div>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5">Icon</label>
+              <IconPicker
+                selectedIcon={icon}
+                onIconSelect={setIcon}
+                className="w-full"
+              />
             </div>
           </div>
 
@@ -334,13 +317,18 @@ export default function EditHabitPage({ params }: { params: { id: string } }) {
           {/* Preview Card */}
           <div className="flex items-center gap-4 p-4.5 bg-slate-950/40 border border-slate-850 rounded-2xl">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl border"
-              style={{ 
+              className="w-12 h-12 rounded-xl flex items-center justify-center border"
+              style={{
                 backgroundColor: color + '15',
                 borderColor: color + '30'
               }}
             >
-              {icon}
+              <HabitIcon
+                icon={icon}
+                category={category}
+                color={color}
+                size={24}
+              />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-sm text-slate-100 truncate">{title || 'Habit Title'}</h3>

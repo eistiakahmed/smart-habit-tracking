@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { CheckCircle2, Clock, Flame, Target } from 'lucide-react';
 
@@ -24,6 +25,12 @@ export function OverallProgressChart({
   activeStreaks,
   habitColors,
 }: OverallProgressChartProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const stats = [
     { label: 'Total Habits', value: totalHabits, icon: Target, color: 'text-sky-400', border: 'border-sky-500/25', bg: 'bg-sky-500/8' },
     { label: 'Days Completed', value: totalCompleted, icon: CheckCircle2, color: 'text-emerald-400', border: 'border-emerald-500/25', bg: 'bg-emerald-500/8' },
@@ -60,25 +67,29 @@ export function OverallProgressChart({
         {/* Pie chart */}
         <div className="flex flex-col justify-center">
           <div className="relative">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={displayData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={58}
-                  outerRadius={80}
-                  paddingAngle={hasData ? 3 : 0}
-                  dataKey="value"
-                  strokeWidth={0}
-                >
-                  {displayData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={displayData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={58}
+                    outerRadius={80}
+                    paddingAngle={hasData ? 3 : 0}
+                    dataKey="value"
+                    strokeWidth={0}
+                  >
+                    {displayData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[200px] rounded-xl bg-slate-950/30 border border-slate-900/60" />
+            )}
             {/* Center label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-3xl font-black text-white tracking-tight">{completionPct}%</span>

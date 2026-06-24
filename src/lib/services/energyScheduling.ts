@@ -1,4 +1,12 @@
-import { api, ApiResponse } from '@/lib/api';
+import { api } from '@/lib/api';
+
+// Define ApiResponse locally if not exported
+interface ApiResponse<T = any> {
+  success?: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
 
 // Types for Energy-Based Scheduling
 export interface EnergyLog {
@@ -124,79 +132,79 @@ export interface OptimalSchedule {
 class EnergySchedulingService {
   // Energy Logging
   async logEnergy(energyData: any): Promise<ApiResponse<EnergyLog>> {
-    return api.post<ApiResponse<EnergyLog>>('/energy/log', energyData);
+    return (api as any).post('/energy/log', energyData);
   }
 
   async logEnergyFromHabit(habitId: string, completionData: any = {}): Promise<ApiResponse<EnergyLog>> {
-    return api.post<ApiResponse<EnergyLog>>(`/energy/log-from-habit/${habitId}`, completionData);
+    return (api as any).post(`/energy/log-from-habit/${habitId}`, completionData);
   }
 
   async getRecentEnergyLogs(days: number = 7): Promise<ApiResponse<{ logs: EnergyLog[] }>> {
-    return api.get<ApiResponse<{ logs: EnergyLog[] }>>(`/energy/logs?days=${days}`);
+    return (api as any).get(`/energy/logs?days=${days}`);
   }
 
   async getTodayEnergyLogs(): Promise<ApiResponse<{ logs: EnergyLog[] }>> {
-    return api.get<ApiResponse<{ logs: EnergyLog[] }>>('/energy/logs/today');
+    return (api as any).get('/energy/logs/today');
   }
 
   // Energy Analysis
   async getEnergyPatterns(): Promise<ApiResponse<{ patterns: EnergyPattern[] }>> {
-    return api.get<ApiResponse<{ patterns: EnergyPattern[] }>>('/energy/patterns');
+    return (api as any).get('/energy/patterns');
   }
 
   async analyzeEnergyPatterns(): Promise<ApiResponse<{ pattern: EnergyPattern; insights: string[] }>> {
-    return api.post<ApiResponse<{ pattern: EnergyPattern; insights: string[] }>>('/energy/analyze');
+    return (api as any).post('/energy/analyze');
   }
 
   async getCurrentEnergyLevel(): Promise<ApiResponse<{ energy: number; level: string; source: string }>> {
-    return api.get<ApiResponse<{ energy: number; level: string; source: string }>>('/energy/current');
+    return (api as any).get('/energy/current');
   }
 
   // Smart Scheduling
   async generateScheduleRecommendations(habitId: string): Promise<ApiResponse<any>> {
-    return api.post<ApiResponse<any>>(`/energy/schedule-recommendations/${habitId}`);
+    return (api as any).post(`/energy/schedule-recommendations/${habitId}`);
   }
 
   async getOptimalSchedule(): Promise<ApiResponse<OptimalSchedule>> {
-    return api.get<ApiResponse<OptimalSchedule>>('/energy/optimal-schedule');
+    return (api as any).get('/energy/optimal-schedule');
   }
 
   async getScheduleForDate(date: string): Promise<ApiResponse<{ schedule: any[] }>> {
-    return api.get<ApiResponse<{ schedule: any[] }>>(`/energy/schedule/${date}`);
+    return (api as any).get(`/energy/schedule/${date}`);
   }
 
   async updateScheduleRecommendation(recommendationId: string, data: any): Promise<ApiResponse<any>> {
-    return api.put<ApiResponse<any>>(`/energy/schedule-recommendations/${recommendationId}`, data);
+    return (api as any).put(`/energy/schedule-recommendations/${recommendationId}`, data);
   }
 
   // Energy Goals
   async createEnergyGoal(goalData: any): Promise<ApiResponse<EnergyGoal>> {
-    return api.post<ApiResponse<EnergyGoal>>('/energy/goals', goalData);
+    return (api as any).post('/energy/goals', goalData);
   }
 
   async getEnergyGoals(): Promise<ApiResponse<{ goals: EnergyGoal[] }>> {
-    return api.get<ApiResponse<{ goals: EnergyGoal[] }>>('/energy/goals');
+    return (api as any).get('/energy/goals');
   }
 
   async updateEnergyGoal(goalId: string, data: any): Promise<ApiResponse<EnergyGoal>> {
-    return api.put<ApiResponse<EnergyGoal>>(`/energy/goals/${goalId}`, data);
+    return (api as any).put(`/energy/goals/${goalId}`, data);
   }
 
   async trackEnergyGoalProgress(goalId: string): Promise<ApiResponse<{ goal: EnergyGoal; progress: any }>> {
-    return api.post<ApiResponse<{ goal: EnergyGoal; progress: any }>>(`/energy/goals/${goalId}/track`);
+    return (api as any).post(`/energy/goals/${goalId}/track`);
   }
 
   async getEnergyInsights(): Promise<ApiResponse<{ insights: string[]; patterns: any; recommendations: string[] }>> {
-    return api.get<ApiResponse<{ insights: string[]; patterns: any; recommendations: string[] }>>('/energy/insights');
+    return (api as any).get('/energy/insights');
   }
 
   // Energy Calendar
   async getEnergyCalendar(startDate: string, endDate: string): Promise<ApiResponse<{ calendar: any[] }>> {
-    return api.get<ApiResponse<{ calendar: any[] }>>(`/energy/calendar?start=${startDate}&end=${endDate}`);
+    return (api as any).get(`/energy/calendar?start=${startDate}&end=${endDate}`);
   }
 
   async getWeeklyEnergySummary(): Promise<ApiResponse<{ summary: any }>> {
-    return api.get<ApiResponse<{ summary: any }>>('/energy/weekly-summary');
+    return (api as any).get('/energy/weekly-summary');
   }
 }
 

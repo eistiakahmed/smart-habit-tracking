@@ -2,35 +2,40 @@ import { redirect } from 'next/navigation';
 import { getServerUser } from '@/lib/server-auth';
 import { habitActions } from '@/lib/server-actions';
 import { HomeDashboard } from '@/components/client/HomeDashboard';
-import { calculateWeeklyProgress } from '@/lib/utils';
+import { calculateWeeklyProgress, formatLocalDate, getDaysInMonth } from '@/lib/utils';
 
 function generateDaysFromProgress(
-  dailyProgress: Array<{ date: string; completed: boolean }> | undefined,
-  habitStartDate?: string
-): boolean[] {
-  const days = new Array(30).fill(false);
+  dailyProgress: Array<{ date: string; completed: boolean }> | undefined
+): { days: boolean[]; dayDates: string[] } {
   const today = new Date();
-  const startDate = habitStartDate
-    ? new Date(habitStartDate)
-    : new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000);
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const daysInMonth = getDaysInMonth(year, month);
+  const days = new Array(daysInMonth).fill(false);
+  const dayDates: string[] = [];
 
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
+  for (let i = 0; i < daysInMonth; i++) {
+    const date = new Date(year, month, i + 1);
     date.setHours(0, 0, 0, 0);
-    const ds = date.toISOString().split('T')[0];
+    const ds = formatLocalDate(date);
+    dayDates.push(ds);
 
     if (dailyProgress) {
-      const found = dailyProgress.find((dp) => {
-        const d = new Date(dp.date);
-        d.setHours(0, 0, 0, 0);
-        return d.toISOString().split('T')[0] === ds;
-      });
+      const found = dailyProgress.find((dp) => dp.date === ds);
       days[i] = found?.completed || false;
     }
   }
 
-  return days;
+  return { days, dayDates };
+}
+
+function generateCurrentMonthDates(): string[] {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const daysInMonth = getDaysInMonth(year, month);
+
+  return Array.from({ length: daysInMonth }, (_, index) => formatLocalDate(new Date(year, month, index + 1)));
 }
 
 export default async function Home() {
@@ -46,16 +51,19 @@ export default async function Home() {
     response.habits.map(async (habit: any) => {
       try {
         const progressData = await habitActions.getHabitProgress(habit.id) as { dailyProgress: Array<{ date: string; completed: boolean }> };
-        const days = generateDaysFromProgress(progressData.dailyProgress, habit.startDate);
+        const { days, dayDates } = generateDaysFromProgress(progressData.dailyProgress);
         return {
           ...habit,
           days,
+          dayDates,
           weeklyProgress: calculateWeeklyProgress(days),
         };
       } catch {
+        const dayDates = generateCurrentMonthDates();
         return {
           ...habit,
-          days: Array(30).fill(false),
+          days: Array(dayDates.length).fill(false),
+          dayDates,
           weeklyProgress: [0, 0, 0, 0],
         };
       }

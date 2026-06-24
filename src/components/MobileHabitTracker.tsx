@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { HabitWithProgress } from '@/types';
-import { Home, Calendar, Trophy, User, Plus, Flame } from 'lucide-react';
+import { Calendar, Trophy, User, Plus, Flame } from 'lucide-react';
 
 interface MobileHabitTrackerProps {
   habits: HabitWithProgress[];
@@ -10,15 +10,22 @@ interface MobileHabitTrackerProps {
   onAddHabit: () => void;
 }
 
-export default function MobileHabitTracker({ habits, onToggleHabit, onAddHabit }: MobileHabitTrackerProps) {
-  const [activeTab, setActiveTab] = useState('home');
+const subscribeToClientSnapshot = () => () => {};
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
+function getGreeting(hour: number) {
+  if (hour >= 5 && hour < 12) return 'Good Morning';
+  if (hour >= 12 && hour < 17) return 'Good Afternoon';
+  if (hour >= 17 && hour < 21) return 'Good Evening';
+  return 'Good Night';
+}
+
+export default function MobileHabitTracker({ habits, onToggleHabit, onAddHabit }: MobileHabitTrackerProps) {
+  const [activeTab] = useState('home');
+  const greeting = useSyncExternalStore(
+    subscribeToClientSnapshot,
+    () => getGreeting(new Date().getHours()),
+    () => 'Welcome back'
+  );
 
   const todayProgress = habits.length > 0
     ? Math.round((habits.filter(h => h.todayCompleted).length / habits.length) * 100)
@@ -42,77 +49,20 @@ export default function MobileHabitTracker({ habits, onToggleHabit, onAddHabit }
   };
 
   return (
-    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] font-sans overflow-hidden relative">
+    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] font-sans overflow-x-hidden relative">
       {/* Glow decorations */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] rounded-full bg-purple-600/5 blur-[80px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[250px] h-[250px] rounded-full bg-sky-600/5 blur-[80px] pointer-events-none" />
 
-      <div className="max-w-md mx-auto min-h-screen flex flex-col relative z-10">
-        
-        {/* Sidebar Nav */}
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-slate-950/80 backdrop-blur-xl flex flex-col items-center py-6 gap-6 border-r border-slate-900/60 z-20">
-          <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-purple-600 rounded-2xl flex items-center justify-center text-white font-extrabold text-lg mb-4 border border-sky-400/20 shadow-[0_0_12px_rgba(56,189,248,0.15)] select-none">
-            ✓
-          </div>
-
-          <nav className="flex-1 flex flex-col gap-4">
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                activeTab === 'home'
-                  ? 'bg-sky-500/10 border border-sky-500/20 text-sky-400 shadow-[0_0_12px_rgba(14,165,233,0.15)]'
-                  : 'text-slate-500 hover:text-white hover:bg-slate-900/40 border border-transparent'
-              }`}
-            >
-              <Home className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={() => setActiveTab('calendar')}
-              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                activeTab === 'calendar'
-                  ? 'bg-sky-500/10 border border-sky-500/20 text-sky-400 shadow-[0_0_12px_rgba(14,165,233,0.15)]'
-                  : 'text-slate-500 hover:text-white hover:bg-slate-900/40 border border-transparent'
-              }`}
-            >
-              <Calendar className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={() => setActiveTab('trophy')}
-              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                activeTab === 'trophy'
-                  ? 'bg-sky-500/10 border border-sky-500/20 text-sky-400 shadow-[0_0_12px_rgba(14,165,233,0.15)]'
-                  : 'text-slate-500 hover:text-white hover:bg-slate-900/40 border border-transparent'
-              }`}
-            >
-              <Trophy className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                activeTab === 'profile'
-                  ? 'bg-sky-500/10 border border-sky-500/20 text-sky-400 shadow-[0_0_12px_rgba(14,165,233,0.15)]'
-                  : 'text-slate-500 hover:text-white hover:bg-slate-900/40 border border-transparent'
-              }`}
-            >
-              <User className="w-5 h-5" />
-            </button>
-          </nav>
-
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-sky-500 flex items-center justify-center text-white font-bold text-xs border border-slate-700 shadow-sm font-sans select-none">
-            U
-          </div>
-        </div>
+      <div className="max-w-lg mx-auto min-h-screen flex flex-col relative z-10">
 
         {/* Main Content */}
-        <div className="ml-20 flex-1 p-6 page-enter">
+        <div className="flex-1 p-4 sm:p-6 page-enter">
           {activeTab === 'home' && (
             <>
               {/* Greeting Header */}
               <div className="mb-8">
-                <h1 className="text-2xl font-black text-white tracking-tight">{getGreeting()}</h1>
+                <h1 className="text-2xl font-black text-white tracking-tight">{greeting}</h1>
                 <p className="text-xs text-slate-400 mt-1 font-semibold">Let&apos;s check your daily progress</p>
               </div>
 
@@ -165,9 +115,9 @@ export default function MobileHabitTracker({ habits, onToggleHabit, onAddHabit }
                   habits.map((habit) => (
                     <div
                       key={habit.id}
-                      className="glass-panel rounded-2xl p-4 flex items-center gap-4 border border-slate-800/80 hover:border-slate-700 transition-all hover:bg-slate-900/30 group"
+                      className="glass-panel rounded-2xl p-3.5 flex items-center gap-3 border border-slate-800/80 hover:border-slate-700 transition-all hover:bg-slate-900/30 group"
                     >
-                      <div className="w-11 h-11 rounded-xl bg-slate-950/50 flex items-center justify-center text-2xl flex-shrink-0 border border-slate-900">
+                      <div className="w-10 h-10 rounded-xl bg-slate-950/50 flex items-center justify-center text-xl flex-shrink-0 border border-slate-900">
                         {getHabitIcon(habit.icon, habit.category)}
                       </div>
 
@@ -182,12 +132,16 @@ export default function MobileHabitTracker({ habits, onToggleHabit, onAddHabit }
                       </div>
 
                       <button
-                        onClick={() => onToggleHabit(habit.id)}
-                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer ${
+                        onClick={() => {
+                          if (!habit.todayCompleted) onToggleHabit(habit.id);
+                        }}
+                        disabled={habit.todayCompleted}
+                        className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer ${
                           habit.todayCompleted
-                            ? 'bg-gradient-to-r from-sky-400 to-purple-600 border-transparent shadow-[0_0_8px_rgba(56,189,248,0.3)]'
+                            ? 'bg-linear-to-r from-sky-400 to-purple-600 border-transparent shadow-[0_0_8px_rgba(56,189,248,0.3)] cursor-default'
                             : 'border-slate-800 hover:border-slate-600'
                         }`}
+                        style={{ touchAction: 'manipulation', minWidth: '36px', minHeight: '36px' }}
                       >
                         {habit.todayCompleted && (
                           <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,9 +184,10 @@ export default function MobileHabitTracker({ habits, onToggleHabit, onAddHabit }
         {/* Floating Add Button */}
         <button
           onClick={onAddHabit}
-          className="absolute bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-sky-400 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-sky-400/20 shadow-sky-500/10 z-30"
+          className="absolute bottom-5 right-5 sm:bottom-8 sm:right-8 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-sky-400 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-sky-400/20 shadow-sky-500/10 z-30"
+          style={{ touchAction: 'manipulation' }}
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       </div>
     </div>

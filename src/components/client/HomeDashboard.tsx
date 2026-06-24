@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import HabitGrid from '@/components/HabitGrid';
 import MobileHabitCard from '@/components/MobileHabitCard';
@@ -11,6 +11,9 @@ import Header from '@/components/Header';
 import QuickNotepad from '@/components/QuickNotepad';
 import { HabitWithProgress, User } from '@/types';
 import { Plus, RefreshCw, Target, BarChart3, Calendar, Trophy, Zap, Users, Flame } from 'lucide-react';
+import { AddHabitFAB } from '@/components/AddHabitFAB';
+import { calculateWeeklyProgress, formatLocalDate } from '@/lib/utils';
+import { api } from '@/lib/api';
 
 const quickLinks = [
   { label: 'Goals',        href: '/goals',        icon: Calendar,  color: 'text-sky-400',  glow: 'shadow-sky-500/10' },
@@ -20,11 +23,19 @@ const quickLinks = [
   { label: 'Social',       href: '/social',        icon: Users,     color: 'text-purple-400',  glow: 'shadow-purple-500/10' },
 ];
 
-function getGreeting(name: string) {
-  const h = new Date().getHours();
-  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+function getGreeting(name: string, hour: number) {
+  const g =
+    hour >= 5 && hour < 12
+      ? 'Good morning'
+      : hour >= 12 && hour < 17
+        ? 'Good afternoon'
+        : hour >= 17 && hour < 21
+          ? 'Good evening'
+          : 'Good night';
   return `${g}, ${name} 👋`;
 }
+
+const subscribeToClientSnapshot = () => () => {};
 
 interface HomeDashboardProps {
   user: User;
@@ -36,6 +47,17 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
   const [habitsWithProgress, setHabitsWithProgress] = useState<HabitWithProgress[]>(initialHabits);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const displayName = user?.firstName || user?.username || 'there';
+  const greeting = useSyncExternalStore(
+    subscribeToClientSnapshot,
+    () => getGreeting(displayName, new Date().getHours()),
+    () => `Welcome back, ${displayName} 👋`
+  );
+  const todayDate = useSyncExternalStore(
+    subscribeToClientSnapshot,
+    () => formatLocalDate(),
+    () => ''
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -47,6 +69,8 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
   const handleDayToggle = async (habitId: string, dayIndex: number) => {
     const habit = habitsWithProgress.find((h) => h.id === habitId);
     if (!habit) return;
+    if (habit.days[dayIndex]) return;
+    if (todayDate && habit.dayDates?.[dayIndex] !== todayDate) return;
 
     const idx = habitsWithProgress.findIndex((h) => h.id === habitId);
     if (idx === -1) return;
@@ -55,30 +79,40 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
     const h = { ...updated[idx], days: [...updated[idx].days] };
     const prev = h.days[dayIndex];
     h.days[dayIndex] = !prev;
+    h.weeklyProgress = calculateWeeklyProgress(h.days);
     updated[idx] = h;
     setHabitsWithProgress(updated);
 
     try {
-      await fetch('/api/habits/' + habitId + '/toggle', { method: 'POST' });
-      router.refresh();
-    } catch (err: any) {
-      h.days[dayIndex] = prev;
+      const result = await api.toggleHabit(habitId);
+      h.todayCompleted = result.todayCompleted;
+      h.stats = h.stats
+        ? { ...h.stats, currentStreak: result.streak }
+        : { currentStreak: result.streak, longestStreak: 0, completionRate: 0, daysCompleted: 0, totalDays: 0 };
       updated[idx] = { ...h };
       setHabitsWithProgress([...updated]);
-      setError(err.message || 'Failed to toggle habit.');
+      router.refresh();
+    } catch (err: unknown) {
+      h.days[dayIndex] = prev;
+      h.weeklyProgress = calculateWeeklyProgress(h.days);
+      updated[idx] = { ...h };
+      setHabitsWithProgress([...updated]);
+      setError(err instanceof Error ? err.message : 'Failed to toggle habit.');
       setTimeout(() => setError(null), 3500);
     }
   };
 
-  const displayName = user?.firstName || user?.username || 'there';
   const habits = habitsWithProgress;
-  const todayDone = habits.filter((h) => h.days[h.days.length - 1]).length;
+  const todayDone = habits.filter((h) => {
+    const index = todayDate ? h.dayDates?.indexOf(todayDate) ?? -1 : -1;
+    return index >= 0 ? h.days[index] : false;
+  }).length;
   const todayTotal = habits.length;
   const todayPct = todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0;
   const maxStreak = Math.max(0, ...habits.map((h) => (h.stats?.currentStreak || 0)));
 
   return (
-    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] mobile-page-padding relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] mobile-page-padding relative overflow-x-hidden font-sans app-screen">
       
       {/* Decorative meshes */}
       <div className="absolute top-0 right-0 w-[40%] h-[40%] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none z-0" />
@@ -116,8 +150,8 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
       </header>
 
       {/* ── Mobile header ── */}
-      <header className="sm:hidden glass-header sticky top-0 z-50 border-b border-slate-900 shadow-md">
-        <div className="flex items-center justify-between px-4 h-14">
+      <header className="sm:hidden glass-header sticky top-0 z-50 border-b border-slate-900 shadow-md safe-area-top">
+        <div className="mobile-container flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-gradient-to-br from-sky-400 to-purple-600 rounded-lg flex items-center justify-center border border-sky-400/10">
               <span className="text-white text-lg font-bold select-none">✓</span>
@@ -127,7 +161,9 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleRefresh}
-              className="p-2 text-slate-400 rounded-xl active:bg-slate-900 transition-colors cursor-pointer"
+              className="touch-target flex items-center justify-center text-slate-400 rounded-xl active:bg-slate-900 transition-colors cursor-pointer"
+              type="button"
+              aria-label="Refresh habits"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -136,7 +172,7 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto sm:px-6 lg:px-8 sm:py-8 relative z-10">
+      <main className="w-full max-w-7xl mx-auto sm:px-6 lg:px-8 sm:py-8 relative z-10">
 
         {/* Error toast */}
         {error && (
@@ -170,7 +206,7 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
         ) : (
           <>
             {/* ── Mobile dashboard ── */}
-            <div className="sm:hidden page-enter pb-safe relative">
+            <div className="sm:hidden page-enter pb-safe relative mobile-container">
               {/* Decorative background grid block */}
               <div className="absolute top-0 left-0 right-0 h-44 bg-gradient-to-b from-[#0a0f1d] to-[#050a15] border-b border-slate-900/60 overflow-hidden z-0">
                 <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:14px_24px]" />
@@ -179,18 +215,18 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
 
               <div className="relative z-10">
                 {/* Header Section */}
-                <div className="px-5 pt-6 pb-4">
+                <div className="px-4 pt-5 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{getGreeting(displayName)}</p>
-                      <h1 className="text-white text-2xl font-black tracking-tight">Daily Habit Tracker</h1>
+                      <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{greeting}</p>
+                      <h1 className="text-white text-[1.55rem] leading-tight font-black tracking-tight">Daily Habit Tracker</h1>
                     </div>
                   </div>
                 </div>
 
                 {/* Today's Progress Card */}
-                <div className="mx-5 mb-5">
-                  <div className={`glass-panel rounded-3xl p-5 shadow-2xl border transition-all duration-300 relative overflow-hidden ${
+                <div className="mx-4 mb-5">
+                  <div className={`glass-panel tap-card rounded-3xl p-5 shadow-2xl border transition-all duration-300 relative overflow-hidden ${
                     todayPct === 100 
                       ? 'border-emerald-500/50 bg-gradient-to-br from-emerald-950/20 to-slate-950/90 shadow-[0_0_30px_rgba(16,185,129,0.15)]' 
                       : 'border-slate-800/80 bg-slate-950/30'
@@ -284,15 +320,16 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
                 </div>
 
                 {/* Quick Links */}
-                <div className="px-5 mb-6">
-                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-5 px-5">
+                <div className="px-4 mb-6">
+                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none native-scroll-x -mx-4 px-4">
                     {quickLinks.map(({ label, href, icon: Icon, color, glow }) => (
                       <button
                         key={href}
                         onClick={() => router.push(href)}
-                        className="group flex flex-col items-center gap-2 shrink-0 w-16 cursor-pointer"
+                        className="group flex flex-col items-center gap-1.5 shrink-0 w-15 cursor-pointer touch-target"
+                        type="button"
                       >
-                        <div className={`w-13 h-13 rounded-2xl bg-slate-950/50 border border-slate-800 hover:border-slate-700 transition-all duration-200 flex items-center justify-center shadow-lg ${glow}`}>
+                        <div className={`w-11 h-11 rounded-xl bg-slate-950/50 border border-slate-800 transition-all duration-200 flex items-center justify-center shadow-lg ${glow}`}>
                           <Icon className={`w-5.5 h-5.5 ${color}`} />
                         </div>
                         <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-200 transition-colors text-center">{label}</span>
@@ -302,12 +339,13 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
                 </div>
 
                 {/* Today's Habits */}
-                <div className="px-5 mb-4">
+                <div className="px-4 mb-4">
                   <div className="flex items-center justify-between mb-3.5">
                     <h3 className="font-bold text-white text-base tracking-tight">Today&apos;s Habits</h3>
                     <button
                       onClick={() => router.push('/habits/new')}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-sky-500 to-purple-600 text-white rounded-xl text-[10px] font-bold tracking-wider uppercase active:scale-95 transition-transform shadow-[0_0_12px_rgba(56,189,248,0.15)] cursor-pointer"
+                      className="min-h-9 flex items-center gap-1 px-2.5 bg-gradient-to-r from-sky-500 to-purple-600 text-white rounded-lg text-[9px] font-bold tracking-wider uppercase active:scale-95 transition-transform shadow-[0_0_12px_rgba(56,189,248,0.15)] cursor-pointer"
+                      type="button"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add Habit
@@ -320,13 +358,14 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
                         habit={habit}
                         onDayToggle={handleDayToggle}
                         disabled={refreshing}
+                        todayDate={todayDate}
                       />
                     ))}
                   </div>
                 </div>
 
                 {/* Mobile Quick Notepad */}
-                <div className="px-5 mb-8">
+                <div className="px-4 mb-8">
                   <QuickNotepad />
                 </div>
               </div>
@@ -378,22 +417,17 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
                     Add New Habit
                   </button>
                 </div>
-                <HabitGrid habits={habitsWithProgress} onDayToggle={handleDayToggle} />
+                <HabitGrid habits={habitsWithProgress} onDayToggle={handleDayToggle} todayDate={todayDate} />
               </div>
             </div>
           </>
         )}
       </main>
 
-      {/* Desktop FAB */}
-      {habits.length > 0 && (
-        <button
-          onClick={() => router.push('/habits/new')}
-          className="hidden sm:flex fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-sky-400 to-purple-600 text-white rounded-full shadow-lg hover:shadow-2xl transition-all items-center justify-center hover:scale-110 border border-sky-400/20 active:scale-95 cursor-pointer shadow-sky-500/10 z-50"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      )}
+      {/* Mobile FAB - with speech bubble */}
+      <div className="">
+        <AddHabitFAB />
+      </div>
 
       {/* Desktop footer */}
       <footer className="hidden sm:block bg-slate-950 border-t border-slate-900 mt-20 relative z-10">

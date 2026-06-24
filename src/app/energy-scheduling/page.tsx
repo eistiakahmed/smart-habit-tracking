@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { EnergyDashboard } from '@/components/unique-features/EnergyDashboard';
 import { OptimalSchedule } from '@/components/unique-features/OptimalSchedule';
@@ -224,5 +226,5 @@ function EnergyInsights({ userId }: { userId: string }) {
           Complete more habits to unlock insights
         </p>
       )}
-    </div  );
+    </div>);
 }

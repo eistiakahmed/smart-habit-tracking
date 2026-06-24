@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import MobileHabitTracker from '@/components/MobileHabitTracker';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { formatLocalDate, getDaysInMonth } from '@/lib/utils';
 import { Habit, HabitWithProgress } from '@/types';
 
 export default function MobilePage() {
@@ -37,18 +38,23 @@ export default function MobilePage() {
       const habitsWithDays: HabitWithProgress[] = await Promise.all(
         response.habits.map(async (habit) => {
           let days: boolean[] = [];
+          let dayDates: string[] = [];
 
           try {
             const progressData = await api.getHabitProgress(habit.id);
-            days = generateDaysFromProgress(progressData.dailyProgress, habit.startDate);
+            const generated = generateDaysFromProgress(progressData.dailyProgress);
+            days = generated.days;
+            dayDates = generated.dayDates;
           } catch (progressErr) {
             console.warn(`Failed to fetch progress for habit ${habit.id}, using empty data:`, progressErr);
-            days = Array(30).fill(false);
+            dayDates = generateCurrentMonthDates();
+            days = Array(dayDates.length).fill(false);
           }
 
           return {
             ...habit,
             days,
+            dayDates,
             weeklyProgress: calculateWeeklyProgress(days),
           };
         })
@@ -71,33 +77,33 @@ export default function MobilePage() {
   };
 
   const generateDaysFromProgress = (
-    dailyProgress: Array<{ date: string; completed: boolean }> | undefined,
-    habitStartDate?: string
-  ): boolean[] => {
-    const days = new Array(30).fill(false);
-    const today = new Date();
+    dailyProgress: Array<{ date: string; completed: boolean }> | undefined
+  ): { days: boolean[]; dayDates: string[] } => {
+    const dayDates = generateCurrentMonthDates();
+    const days = new Array(dayDates.length).fill(false);
 
-    const startDate = habitStartDate ? new Date(habitStartDate) : new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000);
-
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      date.setHours(0, 0, 0, 0);
-
-      const dateString = date.toISOString().split('T')[0];
+    for (let i = 0; i < dayDates.length; i++) {
+      const dateString = dayDates[i];
 
       if (dailyProgress) {
-        const found = dailyProgress.find((dp) => {
-          const dpDate = new Date(dp.date);
-          dpDate.setHours(0, 0, 0, 0);
-          return dpDate.toISOString().split('T')[0] === dateString;
-        });
+        const found = dailyProgress.find((dp) => dp.date === dateString);
 
         days[i] = found?.completed || false;
       }
     }
 
-    return days;
+    return { days, dayDates };
+  };
+
+  const generateCurrentMonthDates = (): string[] => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+
+    return Array.from({ length: daysInMonth }, (_, index) => (
+      formatLocalDate(new Date(year, month, index + 1))
+    ));
   };
 
   const calculateWeeklyProgress = (days: boolean[]): number[] => {
@@ -130,11 +136,24 @@ export default function MobilePage() {
       );
 
       setHabitsWithProgress(prevHabits =>
-        prevHabits.map(habit =>
-          habit.id === habitId
-            ? { ...habit, todayCompleted: result.todayCompleted }
-            : habit
-        )
+        prevHabits.map(habit => {
+          if (habit.id !== habitId) return habit;
+
+          const today = formatLocalDate();
+          const todayIndex = habit.dayDates?.indexOf(today) ?? -1;
+          const days = [...habit.days];
+
+          if (todayIndex >= 0) {
+            days[todayIndex] = true;
+          }
+
+          return {
+            ...habit,
+            days,
+            todayCompleted: result.todayCompleted,
+            weeklyProgress: calculateWeeklyProgress(days),
+          };
+        })
       );
 
       setError(null);

@@ -3,215 +3,197 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { HabitWithProgress } from '@/types';
-import { Droplets, Dumbbell, BookOpen, Brain, Apple, Zap, Target, Heart, ChevronRight, Flame } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import HabitIcon from './shared/HabitIcon';
+import { formatLocalDate, parseLocalDate } from '@/lib/utils';
 
 interface MobileHabitCardProps {
   habit: HabitWithProgress;
   onDayToggle?: (habitId: string, dayIndex: number) => void;
   disabled?: boolean;
+  todayDate?: string;
 }
 
-const categoryIcons: Record<string, React.ElementType> = {
-  Health: Droplets,
-  Fitness: Dumbbell,
-  Learning: BookOpen,
-  'Mental Health': Brain,
-  Nutrition: Apple,
-  Productivity: Zap,
-  Goals: Target,
-  Wellness: Heart,
-};
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const weekColors = ['#0ea5e9', '#f97316', '#10b981', '#a855f7'];
-
-export default function MobileHabitCard({ habit, onDayToggle, disabled }: MobileHabitCardProps) {
+export default function MobileHabitCard({ habit, onDayToggle, disabled, todayDate = '' }: MobileHabitCardProps) {
   const router = useRouter();
-  const [pressing, setPressing] = useState(false);
-  const IconComponent = categoryIcons[habit.category] || Target;
+  const [pressing, setPressing] = useState<number | null>(null);
+
+  const today = todayDate;
+  const todayDateIndex = habit.dayDates?.indexOf(today) ?? -1;
+  const todayIndex = todayDateIndex >= 0 ? todayDateIndex : habit.days.length - 1;
 
   const completedCount = habit.days.filter(Boolean).length;
-  const progress = Math.round((completedCount / habit.days.length) * 100);
-  const todayIndex = habit.days.length - 1;
-  const todayDone = habit.days[todayIndex];
-  const streak = habit.stats?.currentStreak || 0;
+  const progress = Math.round((completedCount / Math.max(habit.days.length, 1)) * 100);
 
-  // Last 7 days for the mini grid
-  const last7 = habit.days.slice(-7);
+  // Current week: 7 days ending today
+  const weekStart = todayIndex - 6 < 0 ? 0 : todayIndex - 6;
+  const weekDays = habit.days.slice(weekStart, todayIndex + 1);
+  // Pad left if we're in the first week (< 7 days available)
+  const padLeft = 7 - weekDays.length;
 
-  const handleTodayToggle = () => {
-    if (!disabled) onDayToggle?.(habit.id, todayIndex);
+  // Day-of-week labels aligned to actual dates
+  const todayDow = today ? parseLocalDate(today).getDay() : 0; // 0=Sun
+  const weekDayLabels: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const dow = (todayDow - (6 - i) + 7) % 7;
+    weekDayLabels.push(i === 6 ? 'Today' : DAY_LABELS[dow]);
+  }
+
+  const handleToggle = (globalIndex: number, done: boolean) => {
+    if (disabled || done) return;
+    onDayToggle?.(habit.id, globalIndex);
   };
 
-  const all30DaysDone = progress === 100;
-  const isRecentComplete = habit.days.slice(-3).every(Boolean);
+  // Gradient color based on habit color
+  const accentColor = habit.color || '#0ea5e9';
 
   return (
-    <div className={`glass-panel rounded-2xl border transition-all duration-300 relative overflow-hidden font-sans hover:shadow-2xl hover:bg-slate-900/30 ${
-      all30DaysDone ? 'border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)] bg-emerald-950/5' : 'border-slate-800/80'
-    }`}>
-      {/* Celebration ribbon for 100% */}
-      {all30DaysDone && (
-        <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 text-slate-950 text-center py-1.5 text-[10px] font-black uppercase tracking-wider">
-          🏆 30-Day Master! 🏆
-        </div>
-      )}
-
-      {/* Top row */}
-      <div className={`flex items-center gap-3 px-4 pt-4 pb-3 ${all30DaysDone ? 'pt-3' : ''}`}>
-        {/* Icon */}
+    <div
+      className="rounded-2xl border border-slate-800/60 overflow-hidden font-sans"
+      style={{ background: 'linear-gradient(145deg, #0d1424, #0a1020)' }}
+    >
+      {/* ── Header row ── */}
+      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+        {/* Large circular icon */}
         <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 border transition-all"
+          className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 border"
           style={{
-            background: `linear-gradient(135deg, ${habit.color}15, ${habit.color}25)`,
-            borderColor: `${habit.color}35`,
+            background: `radial-gradient(circle at 35% 35%, ${accentColor}40, ${accentColor}15)`,
+            borderColor: `${accentColor}30`,
+            boxShadow: `0 0 20px ${accentColor}20`,
           }}
         >
-          {isRecentComplete ? (
-            <span className="text-xl">✨</span>
-          ) : (
-            <IconComponent className="w-5 h-5" style={{ color: habit.color }} />
-          )}
+          <HabitIcon icon={habit.icon} category={habit.category} color={accentColor} size={26} />
         </div>
 
-        {/* Name + category */}
-        <div className="flex-1 min-w-0 pr-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold text-slate-100 text-[15px] leading-tight truncate">{habit.title}</h3>
-            {isRecentComplete && !all30DaysDone && <span className="text-sm">🔥</span>}
-          </div>
-          <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mt-1">
-            {all30DaysDone ? 'Completed 30 days!' : habit.category}
-          </p>
+        {/* Title + category */}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[17px] font-bold text-white leading-tight truncate">{habit.title}</h3>
+          <p className="text-sm text-slate-400 mt-0.5 capitalize">{habit.category}</p>
         </div>
 
-        {/* Streak badge */}
-        {streak >= 2 && (
-          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg flex-shrink-0 border ${
-            streak >= 7 
-              ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' 
-              : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
-          }`}>
-            <Flame className="w-3.5 h-3.5 fill-current" />
-            <span className="text-xs font-black">{streak}d</span>
-          </div>
-        )}
-
-        {/* Navigate to detail */}
+        {/* Chevron */}
         <button
           onClick={() => router.push(`/habits/${habit.id}/edit`)}
-          className="p-1.5 text-slate-500 hover:text-slate-300 active:scale-90 transition-all flex-shrink-0 rounded-lg hover:bg-slate-800/40 border border-transparent hover:border-slate-800 cursor-pointer"
+          className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-white transition-colors rounded-lg cursor-pointer flex-shrink-0"
+          type="button"
+          aria-label={`Open ${habit.title}`}
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Progress bar */}
-      <div className="px-4 mb-3">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-            {all30DaysDone ? '🎉 Complete!' : '30-day journey'}
+      {/* ── Progress section ── */}
+      <div className="px-4 pb-3">
+        {/* Label + percentage */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">
+            30-Day Journey
           </span>
-          <span className="text-xs font-bold" style={{ color: all30DaysDone ? '#10b981' : habit.color }}>
+          <span className="text-base font-black" style={{ color: accentColor }}>
             {progress}%
           </span>
         </div>
-        <div className={`h-2 rounded-full overflow-hidden p-[1px] ${
-          all30DaysDone ? 'bg-emerald-950/60 border border-emerald-500/20' : 'bg-slate-950/60 border border-slate-800/80'
-        }`}>
+
+        {/* Progress bar */}
+        <div className="h-2.5 rounded-full overflow-hidden bg-slate-800/80">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
               width: `${progress}%`,
-              background: all30DaysDone 
-                ? 'linear-gradient(90deg, #10b981, #059669)'
-                : habit.color,
-              boxShadow: all30DaysDone 
-                ? '0 0 8px rgba(16, 185, 129, 0.4)'
-                : `0 0 8px ${habit.color}35`,
+              background: `linear-gradient(90deg, ${accentColor}, ${accentColor}bb)`,
+              boxShadow: `0 0 8px ${accentColor}60`,
             }}
           />
         </div>
+
+        {/* Days count */}
+        <p className="text-right text-xs text-slate-400 mt-1.5 font-medium">
+          {completedCount} Day{completedCount !== 1 ? 's' : ''} Out of {habit.days.length}
+        </p>
       </div>
 
-      {/* Bottom row: last 7 days + today button */}
-      <div className="flex items-center gap-3 px-4 pb-4 border-t border-slate-900/40 pt-3">
-        {/* Mini 7-day grid */}
-        <div className="flex gap-1.5 flex-1 min-w-0">
-          {last7.map((done, i) => {
-            const globalIndex = habit.days.length - 7 + i;
-            const isToday = globalIndex === todayIndex;
-            const weekIdx = Math.floor(globalIndex / 7);
-            const color = weekColors[weekIdx % weekColors.length];
-            const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-            const dayOfWeek = (new Date().getDay() - (6 - i) + 7) % 7;
+      {/* ── 7-day week row ── */}
+      <div className="px-4 pb-4">
+        <div className="flex items-end justify-between gap-1">
+          {weekDayLabels.map((label, i) => {
+            const dayOffset = i - padLeft;
+            const globalIndex = weekStart + dayOffset;
+            const done = dayOffset >= 0 ? (weekDays[dayOffset] ?? false) : false;
+            const isValid = dayOffset >= 0;
+            const dayDate = isValid ? habit.dayDates?.[globalIndex] : undefined;
+            const habitStart = habit.startDate ? formatLocalDate(new Date(habit.startDate)) : undefined;
+            const isToday = !!today && dayDate === today;
+            const isPastIncomplete = !!today && !!dayDate && dayDate < today && (!habitStart || dayDate >= habitStart) && !done;
 
             return (
-              <div key={i} className="flex flex-col items-center gap-1 flex-1 min-w-0">
-                <span className="text-[9px] text-slate-600 font-bold">{dayLabels[dayOfWeek]}</span>
-                <div
-                  className={`aspect-square rounded-lg flex items-center justify-center transition-all ${
-                    isToday ? 'ring-2 ring-offset-2 ring-offset-slate-950' : ''
+              <div key={i} className="flex flex-col items-center gap-1.5 flex-1">
+                {/* Day label */}
+                <span
+                  className={`text-[10px] font-bold leading-none ${
+                    isToday ? 'font-black' : 'text-slate-500'
                   }`}
+                  style={{ color: isToday ? accentColor : undefined }}
+                >
+                  {label}
+                </span>
+
+                {/* Circle */}
+                <button
+                  type="button"
+                  disabled={!isValid || disabled || done || !isToday}
+                  onPointerDown={() => isValid && setPressing(i)}
+                  onPointerUp={() => setPressing(null)}
+                  onPointerLeave={() => setPressing(null)}
+                  onClick={() => isValid && isToday && handleToggle(globalIndex, done)}
+                  className={`
+                    w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150
+                    ${!isValid ? 'opacity-0 pointer-events-none' : ''}
+                    ${done ? 'cursor-default' : isValid && isToday ? 'cursor-pointer active:scale-90' : 'cursor-default'}
+                    ${pressing === i ? 'scale-90' : ''}
+                  `}
                   style={{
-                    backgroundColor: done ? color : 'rgba(15, 23, 42, 0.6)',
-                    border: done ? 'none' : '1px solid rgba(255, 255, 255, 0.05)',
-                    boxShadow: done ? `0 0 6px ${color}60` : 'none',
-                    ...(isToday && { ringColor: color, outline: `1px solid ${color}`, outlineOffset: '1px' }),
-                    width: '100%',
-                    maxWidth: '28px',
+                    background: done
+                      ? `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`
+                      : isPastIncomplete
+                      ? 'rgba(239, 68, 68, 0.18)'
+                      : isToday
+                      ? 'rgba(255,255,255,0.04)'
+                      : 'rgba(255,255,255,0.04)',
+                    border: done
+                      ? 'none'
+                      : isPastIncomplete
+                      ? '1.5px solid rgba(239, 68, 68, 0.55)'
+                      : isToday
+                      ? `2px solid ${accentColor}90`
+                      : '1.5px solid rgba(255,255,255,0.10)',
+                    boxShadow: done
+                      ? `0 0 10px ${accentColor}55`
+                      : isPastIncomplete
+                      ? '0 0 10px rgba(239, 68, 68, 0.18)'
+                      : 'none',
                   }}
                 >
-                  {done && (
-                    <svg className="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4.5} d="M5 13l4 4L19 7" />
+                  {done ? (
+                    <svg className="w-4 h-4" fill="none" stroke="rgba(0,0,0,0.75)" viewBox="0 0 24 24" strokeWidth={3.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                  )}
-                  {!done && isToday && (
-                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: color }} />
-                  )}
-                </div>
+                  ) : isPastIncomplete ? (
+                    <span className="text-[11px] font-black text-red-300 leading-none">
+                      {dayDate ? parseLocalDate(dayDate).getDate() : ''}
+                    </span>
+                  ) : isToday ? (
+                    <span className="text-[11px] font-black" style={{ color: accentColor }}>
+                      {DAY_LABELS[todayDow][0]}
+                    </span>
+                  ) : null}
+                </button>
               </div>
             );
           })}
         </div>
-
-        {/* Today's completion button */}
-        <button
-          onPointerDown={() => setPressing(true)}
-          onPointerUp={() => setPressing(false)}
-          onPointerLeave={() => setPressing(false)}
-          onClick={handleTodayToggle}
-          disabled={disabled}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs transition-all duration-150 whitespace-nowrap cursor-pointer ${
-            pressing ? 'scale-95' : 'scale-100'
-          } ${
-            todayDone
-              ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-              : 'text-white'
-          } ${disabled ? 'opacity-50' : ''}`}
-          style={
-            !todayDone
-              ? { 
-                  background: `linear-gradient(135deg, ${habit.color}, ${habit.color}dd)`, 
-                  boxShadow: `0 4px 12px ${habit.color}25` 
-                }
-              : undefined
-          }
-        >
-          {todayDone ? (
-            <>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4.5} d="M5 13l4 4L19 7" />
-              </svg>
-              Done
-            </>
-          ) : (
-            <>
-              <span className="w-2.5 h-2.5 rounded-full border-2 border-white/90 shrink-0" />
-              <span className="truncate">Today</span>
-            </>
-          )}
-        </button>
       </div>
     </div>
   );

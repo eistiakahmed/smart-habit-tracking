@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Edit, Trash2, ArrowLeft, CheckCircle, XCircle, Loader2, Target, Flame, TrendingUp, Calendar, Award, Zap } from 'lucide-react';
+import { AddHabitFAB } from '@/components/AddHabitFAB';
 import { Habit } from '@/types';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -72,7 +73,7 @@ export default function HabitsListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white mobile-page-padding relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white mobile-page-padding relative overflow-x-hidden">
 
       {/* Ambient Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
@@ -82,42 +83,43 @@ export default function HabitsListPage() {
       </div>
 
       {/* Premium Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/50">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/85 border-b border-slate-800/50 safe-area-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between h-14 sm:h-20">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               <button
                 onClick={() => router.back()}
-                className="group p-2.5 hover:bg-slate-800/50 border border-slate-700/50 hover:border-slate-700 rounded-xl transition-all cursor-pointer"
+                className="group flex items-center justify-center w-8 h-8 hover:bg-slate-800/50 border border-slate-700/50 hover:border-slate-700 rounded-xl transition-all cursor-pointer shrink-0"
+                type="button"
+                aria-label="Go back"
               >
-                <ArrowLeft className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
+                <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
               </button>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent truncate">
                   Your Habits
                 </h1>
-                <p className="text-xs text-slate-400 mt-0.5">Manage your daily routine</p>
+                <p className="hidden min-[360px]:block text-xs text-slate-400 mt-0.5">Manage your daily routine</p>
               </div>
             </div>
             <button
               onClick={() => router.push('/habits/new')}
-              className="group relative px-5 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 cursor-pointer"
+              className="group relative flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-sky-500/25 hover:shadow-sky-500/40 cursor-pointer shrink-0"
+              type="button"
             >
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
-              <div className="relative flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">New Habit</span>
-                <span className="sm:hidden">New</span>
-              </div>
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+              <Plus className="relative w-3.5 h-3.5" />
+              <span className="relative hidden sm:inline">New Habit</span>
+              <span className="relative sm:hidden">New</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-10 relative z-10">
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <StatCard
             icon={<Target className="w-4 h-4" />}
             label="Total Habits"
@@ -145,18 +147,18 @@ export default function HabitsListPage() {
         </div>
 
         {/* Premium Filter Tabs */}
-        <div className="flex gap-2 mb-8 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800/50 backdrop-blur-sm">
+        <div className="flex gap-2 mb-6 sm:mb-8 p-1.5 bg-slate-900/50 rounded-2xl border border-slate-800/50 backdrop-blur-sm overflow-x-auto scrollbar-none native-scroll-x">
           {(['active', 'inactive', 'all'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`relative px-5 py-2.5 rounded-xl font-semibold transition-all text-sm capitalize cursor-pointer ${
+              className={`relative touch-target px-4 sm:px-5 rounded-xl font-semibold transition-all text-xs sm:text-sm capitalize cursor-pointer whitespace-nowrap flex-1 sm:flex-none ${
                 filter === f
                   ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
               }`}
+              type="button"
             >
-              {f === 'all' ? 'All Habits' : `${f} Habits`}
               {filter === f && (
                 <motion.div
                   layoutId="activeTab"
@@ -165,7 +167,7 @@ export default function HabitsListPage() {
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               )}
-              <span className="relative z-10">{f === 'all' ? 'All Habits' : `${f} Habits`}</span>
+              <span className="relative z-10">{f === 'all' ? 'All' : f}</span>
             </button>
           ))}
         </div>
@@ -209,15 +211,15 @@ export default function HabitsListPage() {
                 key={habit.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: Math.min(index, 8) * 0.03 }}
                 className="group relative"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
 
-                <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-950/80 border border-slate-800/50 rounded-3xl p-5 sm:p-6 hover:border-slate-700/50 transition-all shadow-xl hover:shadow-2xl backdrop-blur-xl">
+                <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-950/80 border border-slate-800/50 rounded-3xl p-4 sm:p-6 hover:border-slate-700/50 transition-all shadow-xl hover:shadow-2xl backdrop-blur-xl tap-card">
                   {/* Mobile View */}
                   <div className="sm:hidden">
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3">
                       {/* Icon */}
                       <div
                         className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 border shadow-lg relative overflow-hidden"
@@ -234,7 +236,7 @@ export default function HabitsListPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-white text-base mb-1 truncate group-hover:text-sky-400 transition-colors">{habit.title}</h3>
+                            <h3 className="font-bold text-white text-base mb-1 truncate transition-colors">{habit.title}</h3>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="px-2 py-0.5 rounded-lg bg-slate-800/50 border border-slate-700/50 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 {habit.category}
@@ -247,13 +249,17 @@ export default function HabitsListPage() {
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <button
                               onClick={() => router.push(`/habits/${habit.id}/edit`)}
-                              className="p-2 text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 border border-transparent hover:border-sky-500/20 rounded-xl transition-all cursor-pointer"
+                              className="touch-target flex items-center justify-center text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 border border-transparent hover:border-sky-500/20 rounded-xl transition-all cursor-pointer"
+                              type="button"
+                              aria-label={`Edit ${habit.title}`}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(habit.id, habit.title)}
-                              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all cursor-pointer"
+                              className="touch-target flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl transition-all cursor-pointer"
+                              type="button"
+                              aria-label={`Delete ${habit.title}`}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -293,11 +299,12 @@ export default function HabitsListPage() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleToggleActive(habit.id, habit.isActive)}
-                            className={`flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs uppercase tracking-wider border cursor-pointer transition-all flex items-center justify-center gap-2 ${
+                            className={`flex-1 touch-target px-4 rounded-xl font-semibold text-xs uppercase tracking-wider border cursor-pointer transition-all flex items-center justify-center gap-2 ${
                               habit.isActive
                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
                                 : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'
                             }`}
+                            type="button"
                           >
                             {habit.isActive ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                             {habit.isActive ? 'Active' : 'Inactive'}
@@ -406,14 +413,10 @@ export default function HabitsListPage() {
         )}
       </main>
 
-      {/* Mobile FAB */}
-      <button
-        onClick={() => router.push('/habits/new')}
-        className="sm:hidden fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-full shadow-2xl shadow-sky-500/50 flex items-center justify-center active:scale-95 transition-all cursor-pointer z-50 border border-sky-400/30"
-      >
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-sky-400 to-blue-500 blur-xl opacity-60" />
-        <Plus className="w-6 h-6 relative" />
-      </button>
+      {/* Mobile FAB - with speech bubble */}
+      <div className="">
+        <AddHabitFAB />
+      </div>
     </div>
   );
 }

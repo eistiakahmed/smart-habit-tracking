@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, RefreshC, Play, Eye, TrendingUp, Lightbulb, GitBranch, Sparkles } from 'lucide-react';
+import { Clock, RefreshCw, Play, Eye, TrendingUp, Lightbulb, GitBranch, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface TimeMachineProps {

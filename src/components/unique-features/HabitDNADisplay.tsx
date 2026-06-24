@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { DNA, TrendingUp, Zap, Heart, Users, Award, RefreshC, Sparkles } from 'lucide-react';
+import { DiscAlbum, TrendingUp, Zap, Heart, Users, Award, RefreshCw, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface HabitGeneticsDisplay {
@@ -71,7 +71,7 @@ export function HabitDNADisplay({ habitId, habitName }: HabitDNADisplayProps) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <div className="text-center">
-          <DNA className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+          <DiscAlbum className="w-12 h-12 mx-auto mb-3 text-gray-400" />
           <p className="text-gray-600 mb-3">No genetic data available for this habit yet.</p>
           <button
             onClick={handleAnalyze}
@@ -89,7 +89,7 @@ export function HabitDNADisplay({ habitId, habitName }: HabitDNADisplayProps) {
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <DNA className="w-6 h-6 text-purple-600" />
+          <DiscAlbum className="w-6 h-6 text-purple-600" />
           <h3 className="text-xl font-semibold text-gray-900">Genetic Profile: {habitName}</h3>
         </div>
         <button
@@ -97,7 +97,7 @@ export function HabitDNADisplay({ habitId, habitName }: HabitDNADisplayProps) {
           disabled={analyzing}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
         >
-          <RefreshC className="w-5 h-5 text-gray-600" />
+          <RefreshCw className="w-5 h-5 text-gray-600" />
         </button>
       </div>
 
@@ -140,7 +140,7 @@ export function HabitDNADisplay({ habitId, habitName }: HabitDNADisplayProps) {
             'Morning': genetics.energy.morning,
             'Afternoon': genetics.energy.afternoon,
             'Evening': genetics.energy.evening,
-            'Optimal': genetics.energy.optimum,
+            'Optimal': parseFloat(genetics.energy.optimum) || 0,
           }}
         />
 

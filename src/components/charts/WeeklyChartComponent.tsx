@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -11,6 +12,12 @@ interface WeeklyChartComponentProps {
 }
 
 export function WeeklyChartComponent({ chartData, habits }: WeeklyChartComponentProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!habits.length) {
     return (
       <div className="glass-panel rounded-2xl border border-slate-800/80 p-6 shadow-2xl font-sans">
@@ -51,36 +58,40 @@ export function WeeklyChartComponent({ chartData, habits }: WeeklyChartComponent
       <h2 className="text-base sm:text-lg font-bold text-white mb-1 tracking-tight">Weekly Progress</h2>
       <p className="text-xs text-slate-400 mb-4 sm:mb-6">Completion rate by week per habit</p>
 
-      <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={chartData} barCategoryGap="25%" barGap={3}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.04)" vertical={false} />
-          <XAxis
-            dataKey="week"
-            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(v) => `${v}%`}
-            domain={[0, 100]}
-            width={36}
-          />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.015)' }} />
-          {habits.map((habit, i) => (
-            <Bar
-              key={habit.id}
-              dataKey={habit.id}
-              name={habit.title}
-              fill={habit.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length]}
-              radius={[6, 6, 0, 0]}
-              maxBarSize={28}
+      {mounted ? (
+        <ResponsiveContainer width="100%" height={240}>
+          <BarChart data={chartData} barCategoryGap="25%" barGap={3}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.04)" vertical={false} />
+            <XAxis
+              dataKey="week"
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
+              axisLine={false}
+              tickLine={false}
             />
-          ))}
-        </BarChart>
-      </ResponsiveContainer>
+            <YAxis
+              tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `${v}%`}
+              domain={[0, 100]}
+              width={36}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.015)' }} />
+            {habits.map((habit, i) => (
+              <Bar
+                key={habit.id}
+                dataKey={habit.id}
+                name={habit.title}
+                fill={habit.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length]}
+                radius={[6, 6, 0, 0]}
+                maxBarSize={28}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="h-[240px] rounded-xl bg-slate-950/30 border border-slate-900/60" />
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 pt-4 border-t border-slate-800/40">

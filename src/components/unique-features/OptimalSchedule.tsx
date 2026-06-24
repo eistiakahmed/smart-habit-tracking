@@ -33,7 +33,7 @@ export function OptimalSchedule({ userId }: OptimalScheduleProps) {
   const handleFollowRecommendation = async (recommendationId: string, habitId: string) => {
     try {
       // Mark recommendation as followed
-      await api.updateScheduleRecommendation(recommendationId, { followed: true });
+      await (api as any).updateScheduleRecommendation(recommendationId, { followed: true });
       // Refresh schedule
       loadSchedule();
     } catch (error) {

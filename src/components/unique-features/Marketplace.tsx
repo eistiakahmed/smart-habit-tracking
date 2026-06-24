@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Tag, TrendingUp, Star, Eye, DollarSign } from 'lucide-react';
+import { ShoppingCart, Tag, TrendingUp, Star, Eye, DollarSign, ShoppingBag } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface MarketplaceProps {

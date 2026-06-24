@@ -20,7 +20,8 @@ export default function WeeklyChart({ habits }: WeeklyChartProps) {
     );
   }
 
-  const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+  const weekCount = Math.max(...habits.map((h) => Math.ceil((h.days?.length || 0) / 7)), 0);
+  const weekLabels = Array.from({ length: weekCount }, (_, index) => `Week ${index + 1}`);
   const chartData = weekLabels.map((week, wi) => {
     const entry: Record<string, string | number> = { week };
     habits.forEach((h) => {

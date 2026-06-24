@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { HabitDNADisplay } from '@/components/unique-features/HabitDNADisplay';
 import { BreedingLab } from '@/components/unique-features/BreedingLab';

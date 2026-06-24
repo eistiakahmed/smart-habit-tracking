@@ -3,6 +3,13 @@ import { authService } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
+export interface ApiResponse<T = any> {
+  success?: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -65,6 +72,36 @@ class ApiClient {
       }
       throw new Error('Network error. Please check your connection.');
     }
+  }
+
+  async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'GET',
+    });
+  }
+
+  async post<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: data === undefined ? undefined : JSON.stringify(data),
+    });
+  }
+
+  async put<T>(endpoint: string, data?: unknown, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: data === undefined ? undefined : JSON.stringify(data),
+    });
+  }
+
+  async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'DELETE',
+    });
   }
 
   // Habit endpoints
@@ -658,6 +695,46 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ action, noteIds }),
     });
+  }
+
+  // ========================================
+  // CATEGORY MANAGEMENT
+  // ========================================
+  async getCategories(includeDefault: boolean = true): Promise<{ categories: any[] }> {
+    return this.request(`/categories?includeDefault=${includeDefault}`);
+  }
+
+  async createCategory(data: {
+    name: string;
+    icon: string;
+    color: string;
+  }): Promise<{ category: any }> {
+    return this.request('/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCategory(id: string, data: {
+    name?: string;
+    icon?: string;
+    color?: string;
+  }): Promise<{ category: any }> {
+    return this.request(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCategory(id: string, reassignToCategoryId?: string): Promise<{ reassignedHabits: number }> {
+    return this.request(`/categories/${id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reassignToCategoryId }),
+    });
+  }
+
+  async getDefaultCategories(): Promise<{ categories: any[] }> {
+    return this.request('/categories/default');
   }
 }
 
