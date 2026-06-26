@@ -76,7 +76,7 @@ export default function ProgressPage() {
       </div>
     );
   };
-
+  
   const renderDailyView = () => {
     if (!dailyProgress) return null;
 

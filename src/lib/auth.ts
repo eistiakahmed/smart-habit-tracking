@@ -1,4 +1,7 @@
 import { api } from './api';
+import { User } from '@/types';
+import { config } from '@/config';
+import { logError, getUserMessage } from '@/utils/errorHandler';
 
 export interface LoginCredentials {
   email: string;
@@ -15,13 +18,7 @@ export interface RegisterData {
 }
 
 export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    firstName?: string;
-    lastName?: string;
-  };
+  user: User;
   tokens: {
     accessToken: string;
     refreshToken: string;
@@ -54,15 +51,27 @@ export class AuthService {
     localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
   }
 
-  static getUser(): any {
+  static getUser(): User | null {
     if (typeof window === 'undefined') return null;
     const userStr = localStorage.getItem(this.USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+
+    try {
+      return JSON.parse(userStr) as User;
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error);
+      localStorage.removeItem(this.USER_KEY);
+      return null;
+    }
   }
 
-  static setUser(user: any): void {
+  static setUser(user: User): void {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    try {
+      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    } catch (error) {
+      console.error('Failed to save user to localStorage:', error);
+    }
   }
 
   static clearAuth(): void {
@@ -77,7 +86,7 @@ export class AuthService {
   }
 
   static async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+    const response = await fetch(`${config.api.baseUrl}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -101,7 +110,7 @@ export class AuthService {
   }
 
   static async register(userData: RegisterData): Promise<AuthResponse> {
-    let body: any;
+    let body: FormData | string;
     let headers: Record<string, string> = {};
 
     if (userData.avatar) {
@@ -120,7 +129,7 @@ export class AuthService {
       body = JSON.stringify(jsonFields);
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+    const response = await fetch(`${config.api.baseUrl}/auth/register`, {
       method: 'POST',
       headers,
       body,
@@ -148,7 +157,7 @@ export class AuthService {
         await api.logout(refreshToken);
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      logError(error, 'AUTH_LOGOUT');
     } finally {
       this.clearAuth();
     }
@@ -159,7 +168,7 @@ export class AuthService {
     if (!refreshToken) return null;
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
+      const response = await fetch(`${config.api.baseUrl}/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +188,7 @@ export class AuthService {
 
       return authResponse.tokens.accessToken;
     } catch (error) {
-      console.error('Token refresh error:', error);
+      logError(error, 'TOKEN_REFRESH');
       this.clearAuth();
       return null;
     }

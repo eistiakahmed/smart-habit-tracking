@@ -13,7 +13,6 @@ import { HabitWithProgress, User } from '@/types';
 import { Plus, RefreshCw, Target, BarChart3, Calendar, Trophy, Zap, Users, Flame } from 'lucide-react';
 import { AddHabitFAB } from '@/components/AddHabitFAB';
 import { calculateWeeklyProgress, formatLocalDate } from '@/lib/utils';
-import { toggleHabitCompletion } from '@/lib/habit-mutations';
 
 const quickLinks = [
   { label: 'Goals',        href: '/goals',        icon: Calendar,  color: 'text-sky-400',  glow: 'shadow-sky-500/10' },
@@ -89,7 +88,16 @@ export function HomeDashboard({ user, initialHabits, serverTodayDate }: HomeDash
     setHabitsWithProgress(updated);
 
     try {
-      const result = await toggleHabitCompletion(habitId);
+      const response = await fetch(`/api/habits/${habitId}/toggle`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to toggle habit.');
+      }
+
+      const result = await response.json() as { todayCompleted: boolean; streak: number };
       h.todayCompleted = result.todayCompleted;
       h.stats = h.stats
         ? { ...h.stats, currentStreak: result.streak }

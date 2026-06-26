@@ -3,6 +3,7 @@ import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MobileNav from "@/components/MobileNav";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -15,7 +16,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Smart Habit Tracker - Build Better Habits",
+  title: "Habit Tracker - Build Better Habits",
   description: "Track your daily habits and achieve your goals with our minimal 30-day habit tracker",
 };
 
@@ -36,14 +37,16 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${outfit.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-[#050a15] text-[#f8fafc] overflow-x-hidden relative">
         {/* Ambient Gradient Background Glows */}
-        <div className="fixed top-[-12%] left-[-18%] w-[18rem] sm:w-[50%] h-[18rem] sm:h-[50%] rounded-full bg-indigo-900/10 blur-[70px] sm:blur-[100px] pointer-events-none z-0" />
-        <div className="fixed bottom-[-12%] right-[-18%] w-[20rem] sm:w-[55%] h-[20rem] sm:h-[55%] rounded-full bg-purple-950/10 blur-[80px] sm:blur-[120px] pointer-events-none z-0" />
+        <div className="fixed top-[-12%] left-[-18%] w-[18rem] sm:w-[50%] h-72 sm:h-[50%] rounded-full bg-indigo-900/10 blur-[70px] sm:blur-[100px] pointer-events-none z-0" />
+        <div className="fixed bottom-[-12%] right-[-18%] w-[20rem] sm:w-[55%] h-80 sm:h-[55%] rounded-full bg-purple-950/10 blur-[80px] sm:blur-[120px] pointer-events-none z-0" />
         
         <AuthProvider>
-          <div className="relative z-10 flex-1 flex flex-col">
-            {children}
-          </div>
-          <MobileNav />
+          <ErrorBoundary>
+            <div className="relative z-10 flex-1 flex flex-col">
+              {children}
+            </div>
+            <MobileNav />
+          </ErrorBoundary>
         </AuthProvider>
       </body>
     </html>

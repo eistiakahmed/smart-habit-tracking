@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 
 /**
  * Shared loading state components to reduce code duplication
@@ -88,3 +88,102 @@ export function EmptyState({ icon, title, description, actionLabel, onAction }: 
     </div>
   );
 }
+
+// Dark-themed skeleton components for the app
+interface HabitSkeletonProps {
+  count?: number;
+}
+
+export const HabitSkeleton = memo(({ count = 5 }: HabitSkeletonProps) => (
+  <div className="space-y-4 px-4 sm:px-0">
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className="bg-[#0f172a] rounded-xl p-4 border border-slate-800 animate-pulse"
+        style={{ animationDelay: `${i * 100}ms` }}
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-slate-700 rounded-lg" />
+          <div className="flex-1">
+            <div className="h-4 bg-slate-700 rounded w-32 mb-2" />
+            <div className="h-3 bg-slate-700 rounded w-24" />
+          </div>
+        </div>
+        <div className="flex gap-1">
+          {Array.from({ length: 7 }).map((_, j) => (
+            <div key={j} className="w-8 h-8 bg-slate-700 rounded" />
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+));
+
+HabitSkeleton.displayName = 'HabitSkeleton';
+
+interface DashboardSkeletonProps {
+  showHeader?: boolean;
+}
+
+export const DashboardSkeleton = memo(({ showHeader = true }: DashboardSkeletonProps) => (
+  <div className="min-h-screen bg-[#050a15] text-[#f8fafc] relative overflow-x-hidden font-sans">
+    {showHeader && (
+      <div className="h-16 bg-[#0f172a] border-b border-slate-800 animate-pulse" />
+    )}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="h-8 bg-slate-700 rounded w-64 mb-6 animate-pulse" />
+      <HabitSkeleton count={5} />
+    </div>
+  </div>
+));
+
+DashboardSkeleton.displayName = 'DashboardSkeleton';
+
+interface ButtonSkeletonProps {
+  width?: string;
+  height?: string;
+}
+
+export const ButtonSkeleton = memo(({ width = '120px', height = '40px' }: ButtonSkeletonProps) => (
+  <div
+    className="bg-slate-700 rounded-lg animate-pulse"
+    style={{ width, height }}
+  />
+));
+
+ButtonSkeleton.displayName = 'ButtonSkeleton';
+
+interface CardSkeletonProps {
+  count?: number;
+}
+
+export const CardSkeleton = memo(({ count = 3 }: CardSkeletonProps) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4 sm:px-0">
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className="bg-[#0f172a] rounded-xl p-6 border border-slate-800 animate-pulse"
+        style={{ animationDelay: `${i * 100}ms` }}
+      >
+        <div className="w-12 h-12 bg-slate-700 rounded-lg mb-4" />
+        <div className="h-4 bg-slate-700 rounded w-full mb-2" />
+        <div className="h-3 bg-slate-700 rounded w-3/4 mb-4" />
+        <div className="h-2 bg-slate-700 rounded w-1/2" />
+      </div>
+    ))}
+  </div>
+));
+
+CardSkeleton.displayName = 'CardSkeleton';
+
+export const LoadingSpinner = memo(({ size = 24 }: { size?: number }) => (
+  <div className="flex items-center justify-center">
+    <div
+      className="border-2 border-slate-600 border-t-indigo-500 rounded-full animate-spin"
+      style={{ width: size, height: size }}
+    />
+  </div>
+));
+
+LoadingSpinner.displayName = 'LoadingSpinner';
+

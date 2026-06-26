@@ -1,7 +1,7 @@
 import { Habit, HabitProgress, ToggleHabitResponse, CreateHabitData, DailyProgress } from '@/types';
 import { authService } from './auth';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+import { config } from '@/config';
+import { logError, getUserMessage } from '@/utils/errorHandler';
 
 export interface ApiResponse<T = any> {
   success?: boolean;
@@ -13,7 +13,7 @@ export interface ApiResponse<T = any> {
 class ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  constructor(baseUrl: string = config.api.baseUrl) {
     this.baseUrl = baseUrl;
   }
 
@@ -66,11 +66,19 @@ class ApiClient {
 
       const data = await response.json();
       return data.data || data;
-    } catch (error: any) {
-      if (error.message) {
+    } catch (error: unknown) {
+      // Log error for debugging
+      const appError = logError(error, 'API_REQUEST');
+
+      // Determine error type and throw appropriate error
+      if (error instanceof Error) {
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          throw new Error('Network error. Please check your connection.');
+        }
         throw error;
       }
-      throw new Error('Network error. Please check your connection.');
+
+      throw new Error(getUserMessage(appError));
     }
   }
 
