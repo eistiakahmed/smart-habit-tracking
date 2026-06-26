@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { api } from '@/lib/api';
+import { formatLocalDate, parseLocalDate } from '@/lib/utils';
 
 const CATEGORIES = [
   'Health',
@@ -28,6 +29,11 @@ export default function NewGoalPage() {
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [minTargetDate, setMinTargetDate] = useState('');
+
+  useEffect(() => {
+    setMinTargetDate(formatLocalDate());
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +62,7 @@ export default function NewGoalPage() {
         description: description.trim() || undefined,
         targetValue,
         unit: unit || undefined,
-        targetDate: new Date(targetDate).toISOString(),
+        targetDate: parseLocalDate(targetDate).toISOString(),
         category,
       });
 
@@ -165,7 +171,7 @@ export default function NewGoalPage() {
                 value={targetDate}
                 onChange={(e) => setTargetDate(e.target.value)}
                 required
-                min={new Date().toISOString().split('T')[0]}
+                min={minTargetDate}
                 className="w-full px-4 py-3 bg-slate-950/40 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl outline-none transition-all text-slate-100 font-medium text-sm"
                 style={{ colorScheme: 'dark' }}
               />
@@ -200,7 +206,7 @@ export default function NewGoalPage() {
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-sm text-slate-100 truncate">{title || 'Goal Preview'}</h3>
               <p className="text-xs text-slate-400 font-medium mt-1">
-                {targetValue} {unit || ''} by {targetDate ? new Date(targetDate).toLocaleDateString() : 'Not set'}
+                {targetValue} {unit || ''} by {targetDate ? parseLocalDate(targetDate).toLocaleDateString() : 'Not set'}
               </p>
             </div>
           </div>

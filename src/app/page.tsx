@@ -70,5 +70,10 @@ export default async function Home() {
     })
   );
 
-  return <HomeDashboard user={user} initialHabits={habitsWithProgress} />;
+  // Compute today's date string on the server so the client doesn't need to
+  // recompute it — prevents hydration mismatch when server/client clocks differ
+  // in timezone or when the date changes near midnight.
+  const serverTodayDate = formatLocalDate();
+
+  return <HomeDashboard user={user} initialHabits={habitsWithProgress} serverTodayDate={serverTodayDate} />;
 }

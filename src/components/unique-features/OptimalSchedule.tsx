@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Target, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
+import { formatLocalDate } from '@/lib/utils';
 
 interface OptimalScheduleProps {
   userId: string;
@@ -12,7 +13,11 @@ interface OptimalScheduleProps {
 export function OptimalSchedule({ userId }: OptimalScheduleProps) {
   const [schedule, setSchedule] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+
+  useEffect(() => {
+    setSelectedDate(formatLocalDate());
+  }, []);
 
   useEffect(() => {
     loadSchedule();

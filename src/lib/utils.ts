@@ -38,6 +38,14 @@ export function formatLocalDate(date: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+export function formatCalendarDate(date: Date | string): string {
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
+
+  return formatLocalDate(typeof date === 'string' ? new Date(date) : date);
+}
+
 export function parseLocalDate(dateString: string): Date {
   const [year, month, day] = dateString.split('-').map(Number);
   return new Date(year, month - 1, day);

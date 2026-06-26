@@ -13,7 +13,7 @@ import { HabitWithProgress, User } from '@/types';
 import { Plus, RefreshCw, Target, BarChart3, Calendar, Trophy, Zap, Users, Flame } from 'lucide-react';
 import { AddHabitFAB } from '@/components/AddHabitFAB';
 import { calculateWeeklyProgress, formatLocalDate } from '@/lib/utils';
-import { api } from '@/lib/api';
+import { toggleHabitCompletion } from '@/lib/habit-mutations';
 
 const quickLinks = [
   { label: 'Goals',        href: '/goals',        icon: Calendar,  color: 'text-sky-400',  glow: 'shadow-sky-500/10' },
@@ -22,6 +22,8 @@ const quickLinks = [
   { label: 'Analytics',    href: '/analytics',     icon: BarChart3, color: 'text-emerald-400', glow: 'shadow-emerald-500/10' },
   { label: 'Social',       href: '/social',        icon: Users,     color: 'text-purple-400',  glow: 'shadow-purple-500/10' },
 ];
+
+const COPYRIGHT_YEAR = 2026;
 
 function getGreeting(name: string, hour: number) {
   const g =
@@ -40,9 +42,10 @@ const subscribeToClientSnapshot = () => () => {};
 interface HomeDashboardProps {
   user: User;
   initialHabits: HabitWithProgress[];
+  serverTodayDate: string;
 }
 
-export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
+export function HomeDashboard({ user, initialHabits, serverTodayDate }: HomeDashboardProps) {
   const router = useRouter();
   const [habitsWithProgress, setHabitsWithProgress] = useState<HabitWithProgress[]>(initialHabits);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,10 +56,12 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
     () => getGreeting(displayName, new Date().getHours()),
     () => `Welcome back, ${displayName} 👋`
   );
+  // Use serverTodayDate as the server snapshot so SSR and client initial render agree.
+  // useSyncExternalStore will re-render with the client snapshot after hydration.
   const todayDate = useSyncExternalStore(
     subscribeToClientSnapshot,
     () => formatLocalDate(),
-    () => ''
+    () => serverTodayDate
   );
 
   const handleRefresh = async () => {
@@ -84,7 +89,7 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
     setHabitsWithProgress(updated);
 
     try {
-      const result = await api.toggleHabit(habitId);
+      const result = await toggleHabitCompletion(habitId);
       h.todayCompleted = result.todayCompleted;
       h.stats = h.stats
         ? { ...h.stats, currentStreak: result.streak }
@@ -112,7 +117,7 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
   const maxStreak = Math.max(0, ...habits.map((h) => (h.stats?.currentStreak || 0)));
 
   return (
-    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] mobile-page-padding relative overflow-x-hidden font-sans app-screen">
+    <div className="min-h-screen bg-[#050a15] text-[#f8fafc] mobile-page-padding relative overflow-x-hidden font-sans app-screen flex flex-col">
       
       {/* Decorative meshes */}
       <div className="absolute top-0 right-0 w-[40%] h-[40%] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none z-0" />
@@ -430,11 +435,78 @@ export function HomeDashboard({ user, initialHabits }: HomeDashboardProps) {
       </div>
 
       {/* Desktop footer */}
-      <footer className="hidden sm:block bg-slate-950 border-t border-slate-900 mt-20 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6">
-          <p className="text-center text-xs text-slate-500 uppercase tracking-widest font-bold">
-            © 2026 Smart Habit Tracker. Redesigned with premium Glassmorphic UI.
-          </p>
+      <footer className="hidden sm:block relative z-10 mt-auto">
+        {/* Top shimmer line */}
+        <div className="h-px bg-gradient-to-r from-transparent via-slate-700/50 to-transparent" />
+
+        <div
+          className="relative overflow-hidden"
+          style={{ background: 'linear-gradient(180deg, rgba(8,13,25,0.98) 0%, rgba(3,7,18,1) 100%)' }}
+        >
+          <div className="relative max-w-7xl mx-auto px-8 lg:px-12 py-3">
+            <div className="flex items-center justify-between gap-6">
+
+              {/* Left — Brand */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-sky-400 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-[0_0_10px_rgba(56,189,248,0.2)]">
+                  <span className="text-white text-[10px] font-black leading-none">✓</span>
+                </div>
+                <div className="flex flex-col leading-none">
+                  <span className="text-[11px] font-bold text-slate-300 tracking-tight">Smart Habit Tracker</span>
+                  <span className="text-[9px] text-slate-600 font-medium mt-0.5 tracking-wide">Build better habits, daily</span>
+                </div>
+              </div>
+
+              {/* Center — Developer credit */}
+              <div className="flex flex-col items-center gap-1">
+                <p className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
+                  Crafted by{' '}
+                  <span className="text-slate-300 font-semibold">Eistiak Ahmed</span>
+                </p>
+                <p className="text-[10px] text-slate-700">© {COPYRIGHT_YEAR} · All rights reserved</p>
+              </div>
+
+              {/* Right — Social links */}
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://www.linkedin.com/in/eistiak-ahmed"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  className="group w-7 h-7 rounded-lg border border-slate-800/80 bg-slate-900/40 hover:border-sky-500/40 hover:bg-sky-500/10 flex items-center justify-center transition-all duration-200"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500 group-hover:text-sky-400 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                </a>
+
+                <a
+                  href="https://github.com/eistiakahmed"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub"
+                  className="group w-7 h-7 rounded-lg border border-slate-800/80 bg-slate-900/40 hover:border-slate-500/40 hover:bg-slate-500/10 flex items-center justify-center transition-all duration-200"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-200 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                  </svg>
+                </a>
+
+                <a
+                  href="https://www.facebook.com/eistiakahmedmeraj"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="group w-7 h-7 rounded-lg border border-slate-800/80 bg-slate-900/40 hover:border-blue-500/40 hover:bg-blue-500/10 flex items-center justify-center transition-all duration-200"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </a>
+              </div>
+
+            </div>
+          </div>
         </div>
       </footer>
     </div>

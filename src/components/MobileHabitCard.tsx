@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { HabitWithProgress } from '@/types';
 import { ChevronRight } from 'lucide-react';
 import HabitIcon from './shared/HabitIcon';
-import { formatLocalDate, parseLocalDate } from '@/lib/utils';
+import { formatCalendarDate, parseLocalDate } from '@/lib/utils';
 
 interface MobileHabitCardProps {
   habit: HabitWithProgress;
@@ -124,7 +124,7 @@ export default function MobileHabitCard({ habit, onDayToggle, disabled, todayDat
             const done = dayOffset >= 0 ? (weekDays[dayOffset] ?? false) : false;
             const isValid = dayOffset >= 0;
             const dayDate = isValid ? habit.dayDates?.[globalIndex] : undefined;
-            const habitStart = habit.startDate ? formatLocalDate(new Date(habit.startDate)) : undefined;
+            const habitStart = habit.startDate ? formatCalendarDate(habit.startDate) : undefined;
             const isToday = !!today && dayDate === today;
             const isPastIncomplete = !!today && !!dayDate && dayDate < today && (!habitStart || dayDate >= habitStart) && !done;
 

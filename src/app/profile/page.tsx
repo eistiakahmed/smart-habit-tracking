@@ -28,6 +28,11 @@ export default function ProfilePage() {
   const [stats, setStats] = useState<any>(null);
   const [achievements, setAchievements] = useState<any>(null);
   const [weeklyProgress, setWeeklyProgress] = useState<any>(null);
+  const [todayWeekIndex, setTodayWeekIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setTodayWeekIndex((new Date().getDay() + 6) % 7);
+  }, []);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -305,7 +310,7 @@ export default function ProfilePage() {
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
                 const dayProgress = weeklyProgress?.dailyBreakdown?.[index];
                 const completionPercent = dayProgress ? Math.round((dayProgress.completed || 0) / (dayProgress.total || 1) * 100) : 0;
-                const isToday = index === (new Date().getDay() + 6) % 7;
+                const isToday = index === todayWeekIndex;
 
                 return (
                   <div key={day} className="text-center">

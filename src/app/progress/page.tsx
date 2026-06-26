@@ -17,7 +17,7 @@ export default function ProgressPage() {
   const [weeklyData, setWeeklyData] = useState<any>(null);
   const [monthlyData, setMonthlyData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<string>(formatLocalDate());
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState(false);
 
   const views: { value: ProgressView; label: string }[] = [
@@ -27,7 +27,13 @@ export default function ProgressPage() {
   ];
 
   useEffect(() => {
-    fetchData();
+    setSelectedDate(formatLocalDate());
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate || view !== 'daily') {
+      fetchData();
+    }
   }, [view, selectedDate]);
 
   const fetchData = async () => {
@@ -53,7 +59,7 @@ export default function ProgressPage() {
   };
 
   const handleDateChange = (days: number) => {
-    setSelectedDate(addDaysToDateString(selectedDate, days));
+    setSelectedDate(addDaysToDateString(selectedDate || formatLocalDate(), days));
   };
 
   const CustomChartTooltip = ({ active, payload, label }: any) => {

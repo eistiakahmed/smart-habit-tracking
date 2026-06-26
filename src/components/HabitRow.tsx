@@ -1,7 +1,7 @@
 'use client';
 
 import DayCheckbox from './DayCheckbox';
-import { formatLocalDate, getWeekColors, groupIntoWeeks, parseLocalDate } from '@/lib/utils';
+import { formatCalendarDate, getWeekColors, groupIntoWeeks, parseLocalDate } from '@/lib/utils';
 import HabitIcon from './shared/HabitIcon';
 import { Flame } from 'lucide-react';
 
@@ -37,7 +37,7 @@ export default function HabitRow({
   const weeks = groupIntoWeeks(trimmedDays); // up to 5 weeks (last may be partial)
   const completedCount = trimmedDays.filter(Boolean).length;
   const today = todayDate;
-  const habitStart = habitStartDate ? formatLocalDate(new Date(habitStartDate)) : undefined;
+  const habitStart = habitStartDate ? formatCalendarDate(habitStartDate) : undefined;
 
   // Current streak (consecutive from most recent of trimmed days)
   let streak = 0;

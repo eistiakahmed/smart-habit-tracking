@@ -135,6 +135,14 @@ interface ScenarioCardProps {
 
 function ScenarioCard({ scenario, userId }: ScenarioCardProps) {
   const [running, setRunning] = useState(false);
+  // Defer locale-dependent date formatting to the client to prevent hydration mismatch.
+  // toLocaleDateString() output differs between server (Node.js) and browser (OS locale).
+  const [dateRange, setDateRange] = useState<string | null>(null);
+  useEffect(() => {
+    setDateRange(
+      `${new Date(scenario.timeline.startDate).toLocaleDateString()} - ${new Date(scenario.timeline.endDate).toLocaleDateString()}`
+    );
+  }, [scenario.timeline.startDate, scenario.timeline.endDate]);
 
   const handleRun = async () => {
     if (scenario.status !== 'DRAFT' && scenario.status !== 'FAILED') return;
@@ -182,7 +190,7 @@ function ScenarioCard({ scenario, userId }: ScenarioCardProps) {
           <span>Period: {scenario.timeline.simulatedPeriod} days</span>
         </div>
         <div className="text-xs text-gray-600 mt-1">
-          {new Date(scenario.timeline.startDate).toLocaleDateString()} - {new Date(scenario.timeline.endDate).toLocaleDateString()}
+          {dateRange ?? ''}
         </div>
       </div>
 

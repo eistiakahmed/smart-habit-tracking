@@ -33,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} ${outfit.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-[#050a15] text-[#f8fafc] overflow-x-hidden relative">
         {/* Ambient Gradient Background Glows */}
         <div className="fixed top-[-12%] left-[-18%] w-[18rem] sm:w-[50%] h-[18rem] sm:h-[50%] rounded-full bg-indigo-900/10 blur-[70px] sm:blur-[100px] pointer-events-none z-0" />

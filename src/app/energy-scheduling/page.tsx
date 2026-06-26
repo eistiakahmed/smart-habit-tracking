@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { EnergyDashboard } from '@/components/unique-features/EnergyDashboard';
 import { OptimalSchedule } from '@/components/unique-features/OptimalSchedule';
 import { api } from '@/lib/api';
+import { addDaysToDateString, formatLocalDate, parseLocalDate } from '@/lib/utils';
 
 export default function EnergySchedulingPage() {
   return (
@@ -30,11 +31,17 @@ export default function EnergySchedulingPage() {
 }
 
 function EnergyCalendar({ userId }: { userId: string }) {
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [calendarData, setCalendarData] = useState<any[]>([]);
 
   useEffect(() => {
-    loadCalendarData(selectedDate);
+    setSelectedDate(formatLocalDate());
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate) {
+      loadCalendarData(selectedDate);
+    }
   }, [selectedDate]);
 
   const loadCalendarData = async (date: string) => {
@@ -42,7 +49,7 @@ function EnergyCalendar({ userId }: { userId: string }) {
       // Would call api.getEnergyCalendar(date)
       // For now, mock data
       const mockData = Array.from({ length: 7 }, (_, i) => ({
-        date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        date: addDaysToDateString(date, i),
         energy: Math.floor(Math.random() * 100),
         activities: Math.floor(Math.random() * 3),
       }));
@@ -65,9 +72,7 @@ function EnergyCalendar({ userId }: { userId: string }) {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => {
-            const prevDate = new Date(selectedDate);
-            prevDate.setDate(prevDate.getDate() - 1);
-            setSelectedDate(prevDate.toISOString().split('T')[0]);
+            setSelectedDate(addDaysToDateString(selectedDate || formatLocalDate(), -1));
           }}
           className="p-2 hover:bg-gray-100 rounded-lg"
         >
@@ -81,9 +86,7 @@ function EnergyCalendar({ userId }: { userId: string }) {
         />
         <button
           onClick={() => {
-            const nextDate = new Date(selectedDate);
-            nextDate.setDate(nextDate.getDate() + 1);
-            setSelectedDate(nextDate.toISOString().split('T')[0]);
+            setSelectedDate(addDaysToDateString(selectedDate || formatLocalDate(), 1));
           }}
           className="p-2 hover:bg-gray-100 rounded-lg"
         >
@@ -98,7 +101,7 @@ function EnergyCalendar({ userId }: { userId: string }) {
             className={`p-3 rounded-lg border ${getEnergyColor(day.energy)} text-center`}
           >
             <div className="text-xs font-semibold mb-1">
-              {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+              {parseLocalDate(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
             </div>
             <div className="text-2xl font-bold">{day.energy}</div>
             <div className="text-xs">{day.activities} activities</div>
